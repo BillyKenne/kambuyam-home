@@ -1,7 +1,7 @@
 # Kambuyam Home
 
 Plateforme de location et de vente immobilière à Douala et Yaoundé, « l'Airbnb camerounais ».
-Le site est en HTML/CSS/JavaScript simple, hébergé sur **Netlify**. Les données (comptes, annonces, photos, réservations) sont dans **Supabase**.
+Le site est en HTML/CSS/JavaScript simple, hébergé sur **GitHub Pages** (Netlify est bloqué par Orange Cameroun). Le DNS du domaine reste géré chez Netlify. Les données (comptes, annonces, photos, réservations) sont dans **Supabase**.
 
 ## Ce que fait le site
 
@@ -22,7 +22,7 @@ Sans configuration Supabase (`config.js` vide), le site tourne en **mode démons
 ### 2. Régler les adresses du site
 **Authentication** › **URL Configuration** :
 - *Site URL* : `https://kambuyam.com`
-- *Redirect URLs* : ajoute `https://kambuyam.com/**` et `https://gleaming-dango-85cd77.netlify.app/**`
+- *Redirect URLs* : ajoute `https://kambuyam.com/**` et `https://billykenne.github.io/kambuyam-home/**`
 
 ### 3. Brancher le site
 **Project Settings** › **API** (ou **Data API**) : copie **Project URL** et la clé **anon public** dans [`config.js`](config.js).
@@ -38,8 +38,8 @@ Ces deux valeurs sont faites pour être publiques. Ne mets **jamais** la clé `s
 3. Exécute ensuite [`supabase/seed.sql`](supabase/seed.sql) : il ajoute les 6 logements de la Résidence Soft Time.
 
 ### 5. Mise en ligne automatique
-Dans Netlify : **Site configuration** › **Build & deploy** › **Link repository** › GitHub › `kambuyam-home`.
-Laisse la commande de build vide et le dossier de publication à `.`. Chaque modification poussée sur GitHub sera en ligne en une minute.
+GitHub Pages publie la branche `main` (dossier racine) à chaque modification. Le fichier `CNAME` indique le domaine `kambuyam.com`.
+DNS (chez Netlify) : 4 lignes A vers `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153` et un CNAME `www` vers `billykenne.github.io`.
 
 ## Bon à savoir
 
