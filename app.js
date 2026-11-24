@@ -140,6 +140,8 @@ async function renderList() {
   $('#list').innerHTML = r.length ? r.map(card).join('') : '<div class="empty"><h3>Aucune annonce ne correspond</h3><p>Essayez une autre ville ou un budget plus large.</p></div>';
 }
 $$('.filters select,.filters input').forEach(e => e.addEventListener('input', () => { partnerOnly = false; renderList(); }));
+$('#flt').addEventListener('submit', e => { e.preventDefault(); partnerOnly = false; renderList(); $('#count').scrollIntoView({behavior: 'smooth', block: 'start'}); });
+$('#flt').addEventListener('reset', () => setTimeout(() => { partnerOnly = false; renderList(); }, 0));
 function goSearch(c, t, m, mx, partner) { $('#f-city').value = c; $('#f-type').value = t; $('#f-mode').value = m; $('#f-max').value = mx; partnerOnly = !!partner; if (location.hash === '#annonces') renderList(); else location.hash = 'annonces'; }
 $('#hs').addEventListener('submit', e => { e.preventDefault(); goSearch($('#hs-city').value, $('#hs-type').value, $('#hs-mode').value, $('#hs-max').value); });
 $$('.chip').forEach(b => b.addEventListener('click', () => { const [c, m] = b.dataset.q.split('|'); goSearch(c, '', m, ''); }));

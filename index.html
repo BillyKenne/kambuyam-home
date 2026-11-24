@@ -60,13 +60,14 @@
 
 <section class="view" id="v-annonces"><div class="wrap band">
   <h1>Annonces</h1>
-  <div class="filters">
+  <form class="filters" id="flt">
     <div><label for="f-city">Ville</label><select id="f-city"><option value="">Toutes</option><option>Douala</option><option>Yaoundé</option></select></div>
     <div><label for="f-type">Type</label><select id="f-type" class="types"></select></div>
     <div><label for="f-mode">Je veux</label><select id="f-mode" class="modes"></select></div>
     <div><label for="f-max">Budget max (FCFA)</label><input id="f-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
     <div><label for="f-sort">Trier</label><select id="f-sort"><option value="">Recommandées</option><option value="asc">Prix croissant</option><option value="desc">Prix décroissant</option></select></div>
-  </div>
+    <div class="fbtns"><button class="btn" type="submit">Rechercher</button><button class="btn ghost" type="reset">Effacer</button></div>
+  </form>
   <p id="count" class="note"></p>
   <div class="grid" id="list"></div>
   <p class="note" style="margin-top:20px">Photos Soft Time issues de leur site. Prix indicatifs, à confirmer avec le partenaire.</p>
