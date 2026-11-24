@@ -20,9 +20,36 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 9
 .bar{display:flex;align-items:center;gap:12px 24px;flex-wrap:wrap;padding-block:10px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:800 24px/1 Nunito,sans-serif;letter-spacing:-.02em}
 .brand img{width:44px;height:auto}.brand b{color:var(--teal-d)}.brand i{font-style:normal;color:var(--green);font-weight:600;margin-left:2px}
-nav{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}
-nav a{padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--ink);font-weight:700}
-nav a:hover,nav a[aria-current]{background:var(--soft);color:var(--teal-d)}
+.bar{flex-wrap:nowrap;min-height:68px}
+nav{display:flex;align-items:center;gap:14px;margin-left:auto}
+.nav-links{display:flex;align-items:center;gap:2px}
+.nav-links a{position:relative;display:flex;align-items:center;gap:7px;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--ink);font-weight:700;white-space:nowrap}
+.nav-links svg{width:19px;height:19px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.nav-links a:hover{background:var(--soft);color:var(--teal-d)}
+.nav-links a[aria-current]{color:var(--teal-d)}
+.nav-links a[aria-current]::after{content:"";position:absolute;left:12px;right:12px;bottom:2px;height:3px;border-radius:3px;background:var(--teal)}
+.nav-links a[aria-current] svg{opacity:1}
+.nav-acc{display:flex;align-items:center;padding-left:14px;border-left:1px solid var(--line)}
+.nav-cta{height:42px;padding:0 18px;white-space:nowrap}
+.who .av{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--teal);color:#fff;font-size:14px}
+.who[aria-current]{outline:2px solid var(--teal)}
+.burger{display:none;margin-left:auto;width:46px;height:46px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;padding:0;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.burger span{display:block;width:20px;height:2.5px;border-radius:2px;background:var(--ink);transition:transform .2s,opacity .2s}
+header.open .burger span:nth-child(1){transform:translateY(7.5px) rotate(45deg)}
+header.open .burger span:nth-child(2){opacity:0}
+header.open .burger span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg)}
+@media(max-width:980px){
+  .burger{display:flex}
+  header .wrap.bar{position:relative}
+  nav{display:none;position:absolute;top:100%;left:0;right:0;margin:0;flex-direction:column;align-items:stretch;gap:10px;padding:12px max(4vw,16px) 18px;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:0 18px 30px rgba(0,0,0,.12)}
+  header.open nav{display:flex}
+  .nav-links{flex-direction:column;align-items:stretch}
+  .nav-links a{padding:14px 12px;font-size:17px;border-radius:12px}
+  .nav-links a[aria-current]{background:var(--soft)}
+  .nav-links a[aria-current]::after{left:0;right:auto;top:10px;bottom:10px;width:4px;height:auto}
+  .nav-acc{padding:12px 0 0;border-left:0;border-top:1px solid var(--line)}
+  .nav-acc a{flex:1;justify-content:center;height:48px}
+}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border:0;border-radius:12px;background:var(--teal);color:#fff;font:700 16px "Nunito Sans",sans-serif;cursor:pointer;text-decoration:none}
 .btn:hover{filter:brightness(1.08)}.btn.ghost{background:transparent;color:var(--teal-d);border:2px solid var(--teal)}.btn.green{background:var(--green)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -91,7 +118,7 @@ footer{background:#0f3c44;color:#dcefF2;margin-top:40px}footer a{color:#9fe6c0}
 footer .wrap{display:grid;grid-template-columns:2fr 1fr 1fr;gap:24px;padding-block:36px}
 .view{display:none}.view.on{display:block}
 @media(max-width:900px){.detail{grid-template-columns:1fr}.box{position:static}.search{grid-template-columns:1fr 1fr}.search .btn{grid-column:1/-1}.how{grid-template-columns:1fr}footer .wrap{grid-template-columns:1fr}}
-@media(max-width:600px){.partner{grid-template-columns:1fr}.partner img{max-width:200px}.form{grid-template-columns:1fr}nav{margin-left:0}nav a{padding:8px 10px;font-size:15px}.bars span{width:100px}}
+@media(max-width:600px){.partner{grid-template-columns:1fr}.partner img{max-width:200px}.form{grid-template-columns:1fr}.bars span{width:100px}}
 @media(prefers-reduced-motion:reduce){.card,.spin{transition:none;animation:none}}
 /* Comptes, espaces propriétaire et admin */
 .navacc{display:flex;gap:4px;align-items:center}

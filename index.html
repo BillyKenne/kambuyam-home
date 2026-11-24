@@ -14,10 +14,20 @@
 <div class="proto" id="proto"><b>Version de démonstration</b> · site en construction. Les paiements sont simulés et certaines annonces sont des exemples.</div>
 <header><div class="wrap bar">
   <a class="brand" href="#accueil"><img src="img/mark.svg" alt=""><span><b>kambuyam</b><i>home</i></span></a>
-  <nav id="nav">
-    <a href="#annonces">Annonces</a><a href="#proprietaires">Publier un bien</a><a href="#compte" id="nav-res">Mes réservations</a>
-    <a href="#espace" id="nav-owner" hidden>Espace propriétaire</a><a href="#admin" id="nav-admin" hidden>Admin</a>
-    <a href="#connexion" id="nav-login">Connexion</a><a href="#compte" id="nav-me" class="who" hidden></a>
+  <button class="burger" id="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
+  <nav id="nav" aria-label="Menu principal">
+    <div class="nav-links">
+      <a href="#annonces"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Annonces</a>
+      <a href="#proprietaires" id="nav-pub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/><path d="M12 11.5v6M9 14.5h6"/></svg>Publier un bien</a>
+      <a href="#compte" id="nav-res"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>Mes réservations</a>
+      <a href="#espace" id="nav-owner" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg>Mes biens</a>
+      <a href="#admin" id="nav-admin" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Admin</a>
+      <a href="#contact" class="nav-contact"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.5h15v10h-9l-4.5 3.5v-3.5H4.5z"/></svg>Contact</a>
+    </div>
+    <div class="nav-acc">
+      <a href="#connexion" id="nav-login" class="btn nav-cta">Se connecter</a>
+      <a href="#compte" id="nav-me" class="who" hidden></a>
+    </div>
   </nav>
 </div></header>
 

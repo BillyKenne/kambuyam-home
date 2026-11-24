@@ -301,9 +301,10 @@ async function loadMe(session) {
 }
 function renderNav() {
   $('#nav-login').hidden = !!me; $('#nav-me').hidden = !me;
-  if (me) $('#nav-me').textContent = (me.full_name || me.email).split(' ')[0];
+  if (me) { const n = (me.full_name || me.email).split(' ')[0]; $('#nav-me').innerHTML = `<span class="av">${esc(n.charAt(0).toUpperCase())}</span>${esc(n)}`; $('#nav-me').title = 'Mon compte'; }
   $('#nav-owner').hidden = !(me && (me.role === 'owner' || me.role === 'admin'));
   $('#nav-admin').hidden = !(me && me.role === 'admin');
+  $('#nav-pub').hidden = !!(me && (me.role === 'owner' || me.role === 'admin'));
   $('#nav-res').hidden = !!me;
 }
 
@@ -430,6 +431,15 @@ $('#c-rent').addEventListener('input', bars); bars();
 $('#ct').addEventListener('submit', e => { e.preventDefault(); e.target.reset(); $('#ct-msg').textContent = 'Merci ! Message enregistré (version de démonstration).'; });
 
 // ---------- Navigation ----------
+function menu(open) {
+  $('header').classList.toggle('open', open);
+  $('#burger').setAttribute('aria-expanded', open);
+  $('#burger').setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+}
+$('#burger').addEventListener('click', () => menu(!$('header').classList.contains('open')));
+$('#nav').addEventListener('click', e => { if (e.target.closest('a')) menu(false); });
+addEventListener('keydown', e => { if (e.key === 'Escape') menu(false); });
+document.addEventListener('click', e => { if (!e.target.closest('header')) menu(false); });
 function route() {
   const h = decodeURIComponent(location.hash.slice(1)) || 'accueil';
   let v = h.startsWith('annonce-') ? 'annonce' : h.startsWith('modifier-') || h === 'nouvelle-annonce' ? 'annonce-form' : h;
@@ -438,6 +448,7 @@ function route() {
   const navKey = {annonce: 'annonces', 'annonce-form': 'espace'}[v] || v;
   $$('#nav a').forEach(a => a.toggleAttribute('aria-current', a.getAttribute('href') === '#' + navKey));
   if (dlg.open) dlg.close();
+  menu(false);
   window.scrollTo(0, 0);
   ({accueil: renderFeat, annonces: renderList, annonce: () => renderDetail(h.slice(8)), connexion: renderAuth, compte: renderCompte, espace: renderEspace,
     'annonce-form': () => renderForm(h.startsWith('modifier-') ? h.slice(9) : null), admin: renderAdmin, proprietaires: renderOwnerCta}[v] || (() => {}))();
