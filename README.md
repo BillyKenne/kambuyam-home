@@ -11,7 +11,7 @@ Le site est en HTML/CSS/JavaScript simple, hébergé sur **Netlify**. Les donné
 - **Administrateur** : validation des annonces avant publication, mise à la une, suivi de toutes les réservations, des commissions et des utilisateurs.
 - **Paiement** : Orange Money / MTN MoMo est **simulé** pour l'instant (étape 3 du projet : CinetPay, Notch Pay ou Campay).
 
-Sans configuration Supabase (`config.js` vide), le site tourne en **mode démonstration** avec des annonces d'exemple.
+Sans configuration Supabase (`config.js` vide), le site tourne en **mode démonstration** : une base locale ([`demo-backend.js`](demo-backend.js)) imite Supabase dans le navigateur du visiteur, avec trois comptes de test en un clic (client, propriétaire, admin, mot de passe `demo123`). Rien n'est envoyé ni partagé entre visiteurs.
 
 ## Mise en route (une seule fois)
 
@@ -54,6 +54,7 @@ index.html        pages du site
 styles.css        apparence
 app.js            fonctionnement (annonces, comptes, réservations, espaces)
 config.js         connexion à Supabase
+demo-backend.js   base de démonstration locale (utilisée si config.js est vide)
 vendor/           bibliothèque Supabase (copie locale, version 2.119.2)
 img/              logo et photos
 supabase/         schema.sql (base et sécurité), seed.sql (annonces de départ)

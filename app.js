@@ -3,8 +3,8 @@
 {
 'use strict';
 const CFG = window.KH_CONFIG || {};
-const sb = (CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase) ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey) : null;
-const LIVE = !!sb;
+const REAL = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase);
+let sb = null;   // client Supabase, ou base de démonstration locale (voir demo-backend.js)
 
 // ---------- Petits outils ----------
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
@@ -14,7 +14,7 @@ const pad = n => String(n).padStart(2, '0');
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const fd = s => s ? new Date(s + 'T12:00').toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
-const safeUrl = u => /^(https:\/\/[^\s"'<>]+|img\/[\w.-]+)$/.test(u || '') ? u : '';
+const safeUrl = u => /^(https:\/\/[^\s"'<>]+|img\/[\w.-]+|data:image\/jpeg;base64,[A-Za-z0-9+\/=]+)$/.test(u || '') ? u : '';
 const phoneOk = t => /^6\d{8}$/.test(t);
 const cleanPhone = v => String(v || '').replace(/\D/g, '').replace(/^237/, '');
 const store = {get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }};
@@ -58,34 +58,29 @@ const DEMO = [
   {id: 'nkolbisson', title: 'Terrain de 600 m² à Nkolbisson', type: TYPES[4], city: 'Yaoundé', area: 'Nkolbisson', mode: 'vente', price: 12500000, ex: 1, amenities: ['Titre foncier', 'Proche route bitumée'], description: 'Terrain de 600 m² avec titre foncier, proche de la route bitumée.'}
 ];
 
+sb = REAL ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey) : window.khDemoClient(DEMO);
+
 // ---------- Accès aux données ----------
 let me = null;          // {id, email, full_name, phone, role}
 let cache = null;       // annonces publiées
 const need = r => { if (r.error) throw r.error; return r.data; };
 const api = {
   async listings(force) {
-    if (!LIVE) return DEMO;
     if (cache && !force) return cache;
     cache = need(await sb.from('listings').select('*').eq('status', 'published').order('featured', {ascending: false}).order('created_at'));
     return cache;
   },
   async listing(id) {
-    if (!LIVE) return DEMO.find(l => l.id === id);
-    if (!/^[0-9a-f-]{36}$/.test(id)) return null;
+    if (REAL && !/^[0-9a-f-]{36}$/.test(id)) return null;
     return need(await sb.from('listings').select('*').eq('id', id).maybeSingle());
   },
-  async taken(id) { return LIVE ? need(await sb.rpc('taken_dates', {p_listing: id})) || [] : []; },
+  async taken(id) { return need(await sb.rpc('taken_dates', {p_listing: id})) || []; },
   async book(b) {
-    if (!LIVE) {
-      const r = {...b, reference: 'KBY-' + Date.now().toString(36).toUpperCase().slice(-6), status: 'requested', created_at: new Date().toISOString()};
-      store.set('kh-res', [r, ...store.get('kh-res', [])]); return r;
-    }
     const row = {listing_id: b.listing_id, check_in: b.check_in, check_out: b.check_out || null, guests: b.guests || 1,
       contact_phone: b.contact_phone || '', message: b.message || '', payment_method: b.payment_method || null, payment_status: b.payment_method ? 'simulated' : 'unpaid'};
     return need(await sb.from('bookings').insert(row).select().single());
   },
   async myBookings() {
-    if (!LIVE) return store.get('kh-res', []);
     return need(await sb.from('booking_details').select('*').eq('client_id', me.id).order('created_at', {ascending: false}));
   },
   async ownerListings() { return need(await sb.from('listings').select('*').eq('owner_id', me.id).order('created_at', {ascending: false})); },
@@ -125,6 +120,7 @@ const photos = l => (l.photos || []).map(safeUrl).filter(Boolean);
 const pic = l => { const p = photos(l)[0]; return p ? `<img src="${esc(p)}" alt="" loading="lazy">` : art(l); };
 const card = l => `<a class="card" href="#annonce-${esc(l.id)}"><div class="ph">${pic(l)}<span class="tag">${esc(l.city)}</span>${l.ex ? '<span class="tag p" style="background:#6b7f83">exemple</span>' : l.partner ? '<span class="tag p">Partenaire</span>' : ''}</div><div class="tx"><h3>${esc(l.title)}</h3><span class="loc">${esc(l.type)} · ${esc(l.area)}</span><span class="price">${fcfa(l.price)} <small>${UNIT[l.mode] || ''}</small></span></div></a>`;
 const loading = '<div class="empty"><div class="spin"></div>Chargement…</div>';
+if (!REAL) $('#proto').insertAdjacentHTML('beforeend', ' <a href="#connexion">Essayer les espaces client, propriétaire et admin</a>');
 const fail = e => `<div class="empty"><h3>Oups</h3><p>${esc(friendly(e))}</p></div>`;
 
 $$('.types').forEach(s => s.innerHTML = '<option value="">Tous</option>' + TYPES.map(t => `<option>${t}</option>`).join(''));
@@ -202,7 +198,7 @@ function needLogin(what) {
 }
 let bk = {};
 function openPay() {
-  if (LIVE && !me) return needLogin('réserver');
+  if (!me) return needLogin('réserver');
   bk = {l: cur, in: $('#d-in').value, out: $('#d-out').value, g: +$('#d-g').value, n: nights()}; bk.total = bk.l.price * bk.n;
   stepInfo(); dlg.showModal();
 }
@@ -241,7 +237,7 @@ function stepWait() {
   }, 3000);
 }
 function openVisit() {
-  if (LIVE && !me) return needLogin('demander une visite');
+  if (!me) return needLogin('demander une visite');
   const v = $('#d-vis').value;
   body.innerHTML = shell(-1, 'Demander une visite', `<p class="note">${esc(cur.title)} · ${fd(v)}</p><form id="vf" class="stack"><div><label for="v-n">Nom</label><input id="v-n" required value="${esc(me ? me.full_name : '')}"></div><div><label for="v-t">Téléphone</label><input id="v-t" type="tel" required placeholder="6XX XX XX XX" value="${esc(me ? me.phone : '')}"></div><div><label for="v-m">Message (optionnel)</label><textarea id="v-m" maxlength="500"></textarea></div><p class="err" id="v-e"></p><button class="btn" style="width:100%">Envoyer la demande</button></form>`);
   dlg.showModal();
@@ -255,7 +251,6 @@ function openVisit() {
 let authMode = 'login';
 function renderAuth() {
   const box = $('#auth');
-  if (!LIVE) { box.innerHTML = '<div class="auth"><h2>Bientôt disponible</h2><p>Les comptes clients et propriétaires seront actifs dès le lancement. Dans cette version de démonstration, vous pouvez déjà parcourir et réserver les annonces.</p><a class="btn" href="#annonces">Voir les annonces</a></div>'; return; }
   if (me && authMode !== 'reset') { location.hash = 'compte'; return; }
   const tabs = authMode === 'reset' ? '' : `<div class="tabs" role="tablist"><button role="tab" data-m="login" aria-selected="${authMode === 'login'}">Se connecter</button><button role="tab" data-m="signup" aria-selected="${authMode === 'signup' || authMode === 'owner'}">Créer un compte</button></div>`;
   const f = authMode === 'login' ? `<form id="af" class="stack"><div><label for="a-mail">E-mail</label><input id="a-mail" type="email" required autocomplete="email"></div>
@@ -269,7 +264,11 @@ function renderAuth() {
       <div><label for="a-mail">E-mail</label><input id="a-mail" type="email" required autocomplete="email"></div>
       <div><label for="a-pw">Mot de passe (6 caractères minimum)</label><input id="a-pw" type="password" required minlength="6" autocomplete="new-password"></div>
       <p class="err" id="a-e"></p><button class="btn" style="width:100%">Créer mon compte</button></form>`;
-  box.innerHTML = `<div class="auth">${tabs}${f}</div>`;
+  const demo = REAL || authMode === 'reset' ? '' : `<div class="auth" style="margin-bottom:16px;background:var(--soft)"><h3>Version de démonstration</h3><p class="note" style="margin-top:0">Essayez chaque espace en un clic. Les données restent dans votre navigateur.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-demo="client@demo.cm">Client</button><button class="btn sm" data-demo="proprio@demo.cm">Propriétaire</button><button class="btn sm" data-demo="admin@demo.cm">Admin</button><button class="btn sm ghost" id="demo-reset">Réinitialiser la démo</button></div></div>`;
+  box.innerHTML = `<div style="max-width:440px;margin:0 auto">${demo}<div class="auth">${tabs}${f}</div></div>`;
+  $$('[data-demo]').forEach(b => b.onclick = () => sb.auth.signInWithPassword({email: b.dataset.demo, password: 'demo123'}));
+  if ($('#demo-reset')) $('#demo-reset').onclick = () => { sb.reset(); cache = null; toast('Démonstration remise à zéro.'); };
   $$('.tabs button').forEach(b => b.onclick = () => { authMode = b.dataset.m; renderAuth(); });
   if ($('#a-forgot')) $('#a-forgot').onclick = e => { e.preventDefault(); authMode = 'forgot'; renderAuth(); };
   $('#af').onsubmit = async e => {
@@ -294,7 +293,7 @@ async function loadMe(session) {
   me = {id: session.user.id, email: session.user.email, full_name: '', phone: '', role: 'client', ...(data || {})};
 }
 function renderNav() {
-  $('#nav-login').hidden = !!me || !LIVE; $('#nav-me').hidden = !me;
+  $('#nav-login').hidden = !!me; $('#nav-me').hidden = !me;
   if (me) $('#nav-me').textContent = (me.full_name || me.email).split(' ')[0];
   $('#nav-owner').hidden = !(me && (me.role === 'owner' || me.role === 'admin'));
   $('#nav-admin').hidden = !(me && me.role === 'admin');
@@ -304,17 +303,16 @@ function renderNav() {
 // ---------- Mon compte (client) ----------
 async function renderCompte() {
   const box = $('#compte');
-  if (LIVE && !me) return goLogin();
+  if (!me) return goLogin();
   box.innerHTML = loading;
   let rs; try { rs = await api.myBookings(); } catch (e) { box.innerHTML = fail(e); return; }
-  const prof = !LIVE ? '' : `<div class="auth" style="margin:0;max-width:none"><h2>Mon profil</h2><form id="pf" class="form"><div><label for="p-n">Nom complet</label><input id="p-n" value="${esc(me.full_name)}" required></div><div><label for="p-t">Téléphone</label><input id="p-t" type="tel" value="${esc(me.phone)}" required></div>
+  const prof = `<div class="auth" style="margin:0;max-width:none"><h2>Mon profil</h2><form id="pf" class="form"><div><label for="p-n">Nom complet</label><input id="p-n" value="${esc(me.full_name)}" required></div><div><label for="p-t">Téléphone</label><input id="p-t" type="tel" value="${esc(me.phone)}" required></div>
     <div class="full note">E-mail : ${esc(me.email)} · Compte ${esc(ROLE[me.role] || me.role)}</div><div class="full" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn">Enregistrer</button><button class="btn ghost" type="button" id="logout">Se déconnecter</button>${me.role === 'client' ? '<button class="btn ghost" type="button" id="become">Je veux aussi proposer des biens</button>' : ''}</div><p class="err full" id="p-e"></p></form></div>`;
   box.innerHTML = `<div class="dash"><div><h1>Mes réservations</h1><div class="rows" id="myres">${rs.length ? rs.map(r => `<div class="item noimg"><div><b>${esc(r.listing_title || r.title || '')}</b><br><span class="note">${esc(r.reference)} · ${r.kind === 'visit' ? 'Visite le ' + fd(r.check_in) : fd(r.check_in) + ' → ' + fd(r.check_out) + ' · ' + fcfa(r.total)}</span><br>${badge(r.status || 'requested')}</div>
-    <div class="act">${r.listing_id ? `<a class="btn sm ghost" href="#annonce-${esc(r.listing_id)}">Voir</a>` : ''}${LIVE && ['requested', 'confirmed'].includes(r.status) ? `<button class="btn sm red" data-cancel="${esc(r.id)}">Annuler</button>` : ''}</div></div>`).join('')
+    <div class="act">${r.listing_id ? `<a class="btn sm ghost" href="#annonce-${esc(r.listing_id)}">Voir</a>` : ''}${['requested', 'confirmed'].includes(r.status) ? `<button class="btn sm red" data-cancel="${esc(r.id)}">Annuler</button>` : ''}</div></div>`).join('')
     : '<div class="empty"><h3>Aucune réservation pour le moment</h3><p><a href="#annonces">Trouvez un logement</a> et réservez en quelques minutes.</p></div>'}</div></div>${prof}</div>`;
   $$('[data-cancel]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmer l\'annulation'; return; }
     try { await api.setBooking(b.dataset.cancel, 'cancelled'); toast('Réservation annulée.'); renderCompte(); } catch (e) { toast(friendly(e)); } });
-  if (!LIVE) return;
   $('#pf').onsubmit = async e => { e.preventDefault(); const ph = cleanPhone($('#p-t').value); if (!phoneOk(ph)) return $('#p-e').textContent = 'Téléphone : 9 chiffres commençant par 6.';
     try { await api.saveProfile({full_name: $('#p-n').value.trim(), phone: ph}); renderNav(); toast('Profil enregistré.'); } catch (x) { $('#p-e').textContent = friendly(x); } };
   $('#logout').onclick = async () => { await sb.auth.signOut(); location.hash = 'accueil'; };
@@ -325,7 +323,6 @@ function goLogin() { sessionStorage.setItem('kh-back', location.hash); authMode 
 // ---------- Espace propriétaire ----------
 async function renderEspace() {
   const box = $('#espace');
-  if (!LIVE) { box.innerHTML = '<div class="empty"><h3>Espace propriétaire</h3><p>Disponible dès le lancement des comptes.</p></div>'; return; }
   if (!me) return goLogin();
   if (me.role === 'client') { box.innerHTML = '<div class="empty"><h3>Vous proposez des biens ?</h3><p>Activez l\'espace propriétaire pour publier vos annonces.</p><button class="btn" id="become2">Activer mon espace propriétaire</button></div>';
     $('#become2').onclick = async () => { try { await api.saveProfile({role: 'owner'}); renderNav(); renderEspace(); } catch (x) { toast(friendly(x)); } }; return; }
@@ -353,7 +350,6 @@ function bindBookingActions(again) {
 // ---------- Formulaire d'annonce (créer / modifier) ----------
 async function renderForm(id) {
   const box = $('#lform');
-  if (!LIVE) { box.innerHTML = '<div class="empty"><h3>Publication bientôt disponible</h3></div>'; return; }
   if (!me) return goLogin();
   let l = {city: 'Douala', type: TYPES[0], mode: 'nuit', photos: [], amenities: []};
   if (id) { box.innerHTML = loading; try { l = await api.listing(id); } catch (e) { box.innerHTML = fail(e); return; }
@@ -393,7 +389,6 @@ async function renderForm(id) {
 let adminTab = 'pending';
 async function renderAdmin() {
   const box = $('#admin');
-  if (!LIVE) { box.innerHTML = '<div class="empty">Administration disponible dès le lancement.</div>'; return; }
   if (!me) return goLogin();
   if (me.role !== 'admin') { box.innerHTML = '<div class="empty">Accès réservé à l\'équipe Kambuyam.</div>'; return; }
   box.innerHTML = loading;
@@ -418,8 +413,7 @@ async function renderAdmin() {
 
 // ---------- Page propriétaires, contact ----------
 function renderOwnerCta() {
-  $('#owner-cta').innerHTML = !LIVE ? '<p><a class="btn green" href="#contact">Nous contacter pour publier</a></p>'
-    : !me ? '<p><a class="btn green" href="#connexion" id="cta-owner">Créer mon compte propriétaire</a> <a class="btn ghost" href="#connexion">J\'ai déjà un compte</a></p>'
+  $('#owner-cta').innerHTML = !me ? '<p><a class="btn green" href="#connexion" id="cta-owner">Créer mon compte propriétaire</a> <a class="btn ghost" href="#connexion">J\'ai déjà un compte</a></p>'
     : `<p><a class="btn green" href="${me.role === 'client' ? '#espace' : '#nouvelle-annonce'}">${me.role === 'client' ? 'Activer mon espace propriétaire' : 'Publier une annonce'}</a></p>`;
   if ($('#cta-owner')) $('#cta-owner').addEventListener('click', () => authMode = 'owner');
 }
@@ -443,7 +437,7 @@ function route() {
 }
 addEventListener('hashchange', route);
 
-if (LIVE) {
+{
   let first = true;
   sb.auth.onAuthStateChange((ev, session) => {
     setTimeout(async () => {   // hors du callback (recommandé par Supabase)
@@ -453,5 +447,5 @@ if (LIVE) {
       if (first || ev === 'SIGNED_OUT') { first = false; route(); }
     }, 0);
   });
-} else { renderNav(); route(); }
+}
 }
