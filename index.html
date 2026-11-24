@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kambuyam Home</title>
+<meta name="description" content="Appartements meublés, chambres, maisons et terrains à Douala et Yaoundé. Réservez et payez par Orange Money ou MTN Mobile Money.">
+<link rel="icon" href="img/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="proto" id="proto"><b>Version de démonstration</b> · site en construction. Les paiements sont simulés et certaines annonces sont des exemples.</div>
+<header><div class="wrap bar">
+  <a class="brand" href="#accueil"><img src="img/mark.svg" alt=""><span><b>kambuyam</b><i>home</i></span></a>
+  <nav id="nav">
+    <a href="#annonces">Annonces</a><a href="#proprietaires">Publier un bien</a><a href="#compte" id="nav-res">Mes réservations</a>
+    <a href="#espace" id="nav-owner" hidden>Espace propriétaire</a><a href="#admin" id="nav-admin" hidden>Admin</a>
+    <a href="#connexion" id="nav-login">Connexion</a><a href="#compte" id="nav-me" class="who" hidden></a>
+  </nav>
+</div></header>
+
+<main>
+<section class="view" id="v-accueil">
+  <div class="hero"><div class="wrap">
+    <h1>Trouvez votre logement à Douala et Yaoundé</h1>
+    <p class="lead">Appartements meublés, chambres, maisons et terrains, vérifiés et réservables en ligne. Payez avec Orange Money ou MTN Mobile Money.</p>
+    <form class="search" id="hs">
+      <div><label for="hs-city">Ville</label><select id="hs-city"><option value="">Toutes</option><option>Douala</option><option>Yaoundé</option></select></div>
+      <div><label for="hs-type">Type</label><select id="hs-type" class="types"></select></div>
+      <div><label for="hs-mode">Je veux</label><select id="hs-mode" class="modes"></select></div>
+      <div><label for="hs-max">Budget max (FCFA)</label><input id="hs-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
+      <button class="btn" type="submit">Rechercher</button>
+    </form>
+    <div class="chips"><button class="chip" data-q="Douala|nuit">Séjour à Douala</button><button class="chip" data-q="Yaoundé|mois">Location à Yaoundé</button><button class="chip" data-q="|vente">Terrains et maisons à vendre</button></div>
+  </div></div>
+  <div class="wrap band">
+    <h2>Annonces à la une</h2>
+    <div class="grid" id="feat"></div>
+    <p style="margin-top:18px"><a class="btn ghost" href="#annonces">Voir toutes les annonces</a></p>
+  </div>
+  <div class="wrap band">
+    <h2>Comment ça marche</h2>
+    <div class="how">
+      <div><h3>Cherchez</h3>Filtrez par ville, type de bien et budget. Chaque annonce est vérifiée par notre équipe avant d'être publiée.</div>
+      <div><h3>Réservez</h3>Choisissez vos dates. Le prix total s'affiche avant de payer, sans frais cachés. Le propriétaire confirme rapidement.</div>
+      <div><h3>Payez par mobile</h3>Orange Money ou MTN Mobile Money. Vous recevez une référence de réservation tout de suite.</div>
+    </div>
+  </div>
+  <div class="wrap band">
+    <div class="partner">
+      <img src="img/softtime-facade.jpg" alt="Façade de la Résidence Soft Time à Bonamoussadi">
+      <div><h2>Partenaire : Résidence Soft Time</h2>
+      <p>En plein cœur de Bonamoussadi, au lieu-dit Terminus à Douala : appartements et chambres meublés haut standing, écrans plats, climatisation, wifi gratuit, accueil et sécurité 24h/24.</p>
+      <button class="btn" type="button" id="partner-btn">Voir ses logements</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-annonces"><div class="wrap band">
+  <h1>Annonces</h1>
+  <div class="filters">
+    <div><label for="f-city">Ville</label><select id="f-city"><option value="">Toutes</option><option>Douala</option><option>Yaoundé</option></select></div>
+    <div><label for="f-type">Type</label><select id="f-type" class="types"></select></div>
+    <div><label for="f-mode">Je veux</label><select id="f-mode" class="modes"></select></div>
+    <div><label for="f-max">Budget max (FCFA)</label><input id="f-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
+    <div><label for="f-sort">Trier</label><select id="f-sort"><option value="">Recommandées</option><option value="asc">Prix croissant</option><option value="desc">Prix décroissant</option></select></div>
+  </div>
+  <p id="count" class="note"></p>
+  <div class="grid" id="list"></div>
+  <p class="note" style="margin-top:20px">Photos Soft Time issues de leur site. Prix indicatifs, à confirmer avec le partenaire.</p>
+</div></section>
+
+<section class="view" id="v-annonce"><div class="wrap band" id="detail"></div></section>
+
+<section class="view" id="v-proprietaires"><div class="wrap band">
+  <h1>Publiez votre bien gratuitement</h1>
+  <p style="max-width:680px">Propriétaires, hôtels et résidences : mettez vos logements et terrains en avant à Douala et Yaoundé. Aucune commission d'un mois de loyer comme en agence. Kambuyam prélève seulement <b>3 %</b> sur chaque réservation payée en ligne.</p>
+  <div id="owner-cta"></div>
+  <div class="calc">
+    <h3>Combien ça vous coûte ?</h3>
+    <label for="c-rent">Loyer mensuel (FCFA)</label><input id="c-rent" type="number" min="0" step="5000" value="125000" inputmode="numeric" style="max-width:260px">
+    <div class="bars" id="bars"></div>
+    <p class="note">Base : en agence, le propriétaire verse en général un mois de loyer. Chez Kambuyam, 3 % du montant réservé.</p>
+  </div>
+</div></section>
+
+<section class="view" id="v-connexion"><div class="wrap band" id="auth"></div></section>
+<section class="view" id="v-compte"><div class="wrap band" id="compte"></div></section>
+<section class="view" id="v-espace"><div class="wrap band" id="espace"></div></section>
+<section class="view" id="v-annonce-form"><div class="wrap band" id="lform"></div></section>
+<section class="view" id="v-admin"><div class="wrap band" id="admin"></div></section>
+
+<section class="view" id="v-contact"><div class="wrap band">
+  <h1>Contactez-nous</h1>
+  <p>Une question sur une annonce, un partenariat ou un paiement ? Écrivez-nous, l'équipe répond 7j/7.</p>
+  <form class="form" id="ct">
+    <div><label for="c-name">Nom</label><input id="c-name" required></div>
+    <div><label for="c-tel">Téléphone ou e-mail</label><input id="c-tel" required></div>
+    <div class="full"><label for="c-msg">Message</label><textarea id="c-msg" required></textarea></div>
+    <div class="full"><button class="btn" type="submit">Envoyer</button> <span id="ct-msg" class="note"></span></div>
+  </form>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <div><b style="font:800 20px Nunito">Kambuyam Home</b><p>La plateforme immobilière 100 % africaine. Location, séjour et vente à Douala et Yaoundé, paiement par mobile money.</p></div>
+  <div><b>Explorer</b><br><a href="#annonces">Annonces</a><br><a href="#proprietaires">Publier un bien</a><br><a href="#compte">Mes réservations</a></div>
+  <div><b>Kambuyam</b><br>Douala · Yaoundé, Cameroun<br><a href="#contact">Nous contacter</a></div>
+</div></footer>
+
+<dialog id="dlg"><div class="dlg" id="dlgb"></div></dialog>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase-2.119.2.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
