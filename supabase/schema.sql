@@ -65,7 +65,7 @@ create table if not exists public.listings (
   partner     text,                       -- ex. « Résidence Soft Time »
   title       text not null check (char_length(title) between 3 and 100),
   type        text not null check (type in ('Appartement meublé','Chambre / studio','Appartement','Maison','Terrain')),
-  city        text not null check (city in ('Douala','Yaoundé')),
+  city        text not null,
   area        text not null default '',
   mode        text not null check (mode in ('nuit','mois','vente')),
   price       integer not null check (price > 0),
@@ -208,6 +208,9 @@ create or replace view public.booking_details with (security_invoker = true) as
 -- Sécurité ligne par ligne (RLS)
 -- ---------------------------------------------------------------
 alter table public.profiles enable row level security;
+-- Toutes les villes du Cameroun sont acceptées (la liste est dans app.js).
+alter table public.listings drop constraint if exists listings_city_check;
+alter table public.listings add constraint listings_city_check check (char_length(city) between 2 and 40);
 alter table public.listings enable row level security;
 alter table public.bookings enable row level security;
 

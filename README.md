@@ -1,11 +1,11 @@
 # Kambuyam Home
 
-Plateforme de location et de vente immobilière à Douala et Yaoundé, « l'Airbnb camerounais ».
+Plateforme de location et de vente immobilière dans tout le Cameroun (Douala, Yaoundé, Kribi, Bafoussam…), « l'Airbnb camerounais ».
 Le site est en HTML/CSS/JavaScript simple, hébergé sur **GitHub Pages** (Netlify est bloqué par Orange Cameroun). Le DNS du domaine reste géré chez Netlify. Les données (comptes, annonces, photos, réservations) sont dans **Supabase**.
 
 ## Ce que fait le site
 
-- **Visiteurs** : recherche par ville, type, séjour/location/achat et budget, fiche détaillée avec photos.
+- **Visiteurs** : recherche par ville (une vingtaine de villes du Cameroun), type, séjour/location/achat et budget, fiche détaillée avec photos.
 - **Clients** : inscription, réservation de séjours (dates, prix calculé par le serveur), demandes de visite, suivi et annulation dans « Mes réservations ».
 - **Propriétaires** : espace pour publier et modifier leurs biens avec photos, accepter ou refuser les demandes, suivre leurs revenus après la commission de 3 %.
 - **Administrateur** : validation des annonces avant publication, mise à la une, suivi de toutes les réservations, des commissions et des utilisateurs.

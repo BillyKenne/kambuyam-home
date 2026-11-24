@@ -3,7 +3,7 @@
 // et garde les données dans le navigateur du visiteur uniquement (localStorage). Rien n'est envoyé.
 window.khDemoClient = function (seedListings) {
   'use strict';
-  const KEY = 'kh-demo-db-v1';
+  const KEY = 'kh-demo-db-v2';
   const now = () => new Date().toISOString();
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36));
   const ADMIN = 'demo-admin', OWNER = 'demo-proprio', CLIENT = 'demo-client';

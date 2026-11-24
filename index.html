@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kambuyam Home</title>
-<meta name="description" content="Appartements meublés, chambres, maisons et terrains à Douala et Yaoundé. Réservez et payez par Orange Money ou MTN Mobile Money.">
+<meta name="description" content="Appartements meublés, chambres, maisons et terrains partout au Cameroun : Douala, Yaoundé, Kribi, Bafoussam, Limbé et plus. Réservez et payez par Orange Money ou MTN Mobile Money.">
 <link rel="icon" href="img/mark.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -24,16 +24,16 @@
 <main>
 <section class="view" id="v-accueil">
   <div class="hero"><div class="wrap">
-    <h1>Trouvez votre logement à Douala et Yaoundé</h1>
+    <h1>Trouvez votre logement partout au Cameroun</h1>
     <p class="lead">Appartements meublés, chambres, maisons et terrains, vérifiés et réservables en ligne. Payez avec Orange Money ou MTN Mobile Money.</p>
     <form class="search" id="hs">
-      <div><label for="hs-city">Ville</label><select id="hs-city"><option value="">Toutes</option><option>Douala</option><option>Yaoundé</option></select></div>
+      <div><label for="hs-city">Ville</label><select id="hs-city" class="cities"></select></div>
       <div><label for="hs-type">Type</label><select id="hs-type" class="types"></select></div>
       <div><label for="hs-mode">Je veux</label><select id="hs-mode" class="modes"></select></div>
       <div><label for="hs-max">Budget max (FCFA)</label><input id="hs-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
       <button class="btn" type="submit">Rechercher</button>
     </form>
-    <div class="chips"><button class="chip" data-q="Douala|nuit">Séjour à Douala</button><button class="chip" data-q="Yaoundé|mois">Location à Yaoundé</button><button class="chip" data-q="|vente">Terrains et maisons à vendre</button></div>
+    <div class="chips"><button class="chip" data-q="Douala|nuit">Séjour à Douala</button><button class="chip" data-q="Yaoundé|mois">Location à Yaoundé</button><button class="chip" data-q="Kribi|nuit">Vacances à Kribi</button><button class="chip" data-q="|vente">Terrains et maisons à vendre</button></div>
   </div></div>
   <div class="wrap band">
     <h2>Annonces à la une</h2>
@@ -61,7 +61,7 @@
 <section class="view" id="v-annonces"><div class="wrap band">
   <h1>Annonces</h1>
   <form class="filters" id="flt">
-    <div><label for="f-city">Ville</label><select id="f-city"><option value="">Toutes</option><option>Douala</option><option>Yaoundé</option></select></div>
+    <div><label for="f-city">Ville</label><select id="f-city" class="cities"></select></div>
     <div><label for="f-type">Type</label><select id="f-type" class="types"></select></div>
     <div><label for="f-mode">Je veux</label><select id="f-mode" class="modes"></select></div>
     <div><label for="f-max">Budget max (FCFA)</label><input id="f-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
@@ -77,7 +77,7 @@
 
 <section class="view" id="v-proprietaires"><div class="wrap band">
   <h1>Publiez votre bien gratuitement</h1>
-  <p style="max-width:680px">Propriétaires, hôtels et résidences : mettez vos logements et terrains en avant à Douala et Yaoundé. Aucune commission d'un mois de loyer comme en agence. Kambuyam prélève seulement <b>3 %</b> sur chaque réservation payée en ligne.</p>
+  <p style="max-width:680px">Propriétaires, hôtels et résidences : mettez vos logements et terrains en avant dans toutes les villes du Cameroun. Aucune commission d'un mois de loyer comme en agence. Kambuyam prélève seulement <b>3 %</b> sur chaque réservation payée en ligne.</p>
   <div id="owner-cta"></div>
   <div class="calc">
     <h3>Combien ça vous coûte ?</h3>
@@ -106,9 +106,9 @@
 </main>
 
 <footer><div class="wrap">
-  <div><b style="font:800 20px Nunito">Kambuyam Home</b><p>La plateforme immobilière 100 % africaine. Location, séjour et vente à Douala et Yaoundé, paiement par mobile money.</p></div>
+  <div><b style="font:800 20px Nunito">Kambuyam Home</b><p>La plateforme immobilière 100 % africaine. Location, séjour et vente dans tout le Cameroun, paiement par mobile money.</p></div>
   <div><b>Explorer</b><br><a href="#annonces">Annonces</a><br><a href="#proprietaires">Publier un bien</a><br><a href="#compte">Mes réservations</a></div>
-  <div><b>Kambuyam</b><br>Douala · Yaoundé, Cameroun<br><a href="#contact">Nous contacter</a></div>
+  <div><b>Kambuyam</b><br>Douala · Yaoundé · Kribi · Bafoussam…<br><a href="#contact">Nous contacter</a></div>
 </div></footer>
 
 <dialog id="dlg"><div class="dlg" id="dlgb"></div></dialog>

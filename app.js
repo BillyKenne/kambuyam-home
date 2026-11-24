@@ -18,6 +18,7 @@ const safeUrl = u => /^(https:\/\/[^\s"'<>]+|img\/[\w.-]+|data:image\/jpeg;base6
 const phoneOk = t => /^6\d{8}$/.test(t);
 const cleanPhone = v => String(v || '').replace(/\D/g, '').replace(/^237/, '');
 const store = {get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }};
+const CITIES = ['Douala', 'Yaoundé', 'Bafoussam', 'Bamenda', 'Garoua', 'Maroua', 'Ngaoundéré', 'Bertoua', 'Ebolowa', 'Buea', 'Limbé', 'Kribi', 'Kumba', 'Édéa', 'Dschang', 'Nkongsamba', 'Foumban', 'Mbalmayo', 'Sangmélima', 'Bafang'];
 const TYPES = ['Appartement meublé', 'Chambre / studio', 'Appartement', 'Maison', 'Terrain'];
 const MODES = {nuit: 'Séjourner (à la nuit)', mois: 'Louer (au mois)', vente: 'Acheter'};
 const UNIT = {nuit: '/ nuit', mois: '/ mois', vente: ''};
@@ -55,6 +56,9 @@ const DEMO = [
   {id: 'odza', title: 'Maison 4 chambres à vendre', type: TYPES[3], city: 'Yaoundé', area: 'Odza', mode: 'vente', price: 45000000, ex: 1, amenities: ['Titre foncier', 'Clôturée', 'Garage'], description: 'Maison de 4 chambres sur 400 m², clôturée, avec titre foncier.'},
   {id: 'bonapriso', title: 'Maison 3 chambres à Bonapriso', type: TYPES[3], city: 'Douala', area: 'Bonapriso', mode: 'mois', price: 125000, ex: 1, amenities: ['Cour', 'Gardien', 'Eau et électricité'], description: 'Maison de 3 chambres avec salon, cuisine et cour, dans un quartier résidentiel.'},
   {id: 'logbessou', title: 'Terrain de 500 m² à Logbessou', type: TYPES[4], city: 'Douala', area: 'Logbessou', mode: 'vente', price: 8000000, ex: 1, amenities: ['Titre foncier', 'Accès route'], description: 'Terrain plat de 500 m², titré, accessible en voiture toute l\'année.'},
+  {id: 'kribi', title: 'Villa 2 chambres près de la plage', type: TYPES[3], city: 'Kribi', area: 'Mpangou', mode: 'nuit', price: 45000, ex: 1, amenities: ['Plage à 5 min', 'Climatisation', 'Terrasse', 'Gardien'], featured: true, description: 'Villa meublée de 2 chambres avec terrasse, à quelques minutes à pied de la plage.'},
+  {id: 'bafoussam', title: 'Appartement 2 chambres à Tamdja', type: TYPES[2], city: 'Bafoussam', area: 'Tamdja', mode: 'mois', price: 60000, ex: 1, amenities: ['Forage', 'Parking'], description: 'Appartement de 2 chambres, salon et cuisine, dans un quartier calme.'},
+  {id: 'limbe', title: 'Studio meublé vue sur mer', type: TYPES[1], city: 'Limbé', area: 'Down Beach', mode: 'nuit', price: 18000, ex: 1, amenities: ['Vue mer', 'Wifi', 'Ventilateur'], description: 'Studio meublé lumineux avec vue sur l\'océan, idéal pour un week-end.'},
   {id: 'nkolbisson', title: 'Terrain de 600 m² à Nkolbisson', type: TYPES[4], city: 'Yaoundé', area: 'Nkolbisson', mode: 'vente', price: 12500000, ex: 1, amenities: ['Titre foncier', 'Proche route bitumée'], description: 'Terrain de 600 m² avec titre foncier, proche de la route bitumée.'}
 ];
 
@@ -123,6 +127,7 @@ const loading = '<div class="empty"><div class="spin"></div>Chargement…</div>'
 if (!REAL) $('#proto').insertAdjacentHTML('beforeend', ' <a href="#connexion">Essayer les espaces client, propriétaire et admin</a>');
 const fail = e => `<div class="empty"><h3>Oups</h3><p>${esc(friendly(e))}</p></div>`;
 
+$$('.cities').forEach(s => s.innerHTML = '<option value="">Toutes</option>' + CITIES.map(c => `<option>${c}</option>`).join(''));
 $$('.types').forEach(s => s.innerHTML = '<option value="">Tous</option>' + TYPES.map(t => `<option>${t}</option>`).join(''));
 $$('.modes').forEach(s => s.innerHTML = '<option value="">Tout</option>' + Object.entries(MODES).map(([k, v]) => `<option value="${k}">${v}</option>`).join(''));
 
@@ -360,7 +365,7 @@ async function renderForm(id) {
   box.innerHTML = `<p><a href="#espace">← Espace propriétaire</a></p><h1>${id ? 'Modifier l\'annonce' : 'Nouvelle annonce'}</h1>${id && l.status === 'published' && me.role !== 'admin' ? '<p class="note">Après modification, l\'annonce repasse en validation avant de réapparaître sur le site.</p>' : ''}
   <form class="form" id="lf">
     <div class="full"><label for="l-title">Titre de l'annonce</label><input id="l-title" required minlength="3" maxlength="100" placeholder="Ex. Studio meublé à Bastos" value="${esc(l.title || '')}"></div>
-    <div><label for="l-city">Ville</label><select id="l-city">${['Douala', 'Yaoundé'].map(c => `<option ${c === l.city ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+    <div><label for="l-city">Ville</label><select id="l-city">${CITIES.map(c => `<option ${c === l.city ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
     <div><label for="l-area">Quartier</label><input id="l-area" required maxlength="60" placeholder="Ex. Bonapriso" value="${esc(l.area || '')}"></div>
     <div><label for="l-type">Type de bien</label><select id="l-type">${TYPES.map(t => `<option ${t === l.type ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <div><label for="l-mode">Proposé</label><select id="l-mode">${[['nuit', 'À la nuit (séjour)'], ['mois', 'Au mois (location)'], ['vente', 'À la vente']].map(([k, v]) => `<option value="${k}" ${k === l.mode ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
