@@ -37,11 +37,17 @@
     <h1>Trouvez votre logement partout au Cameroun</h1>
     <p class="lead">Appartements meublés, chambres, maisons et terrains, vérifiés et réservables en ligne. Payez avec Orange Money ou MTN Mobile Money.</p>
     <form class="search" id="hs">
-      <div><label for="hs-city">Ville</label><select id="hs-city" class="cities"></select></div>
-      <div><label for="hs-type">Type</label><select id="hs-type" class="types"></select></div>
-      <div><label for="hs-mode">Je veux</label><select id="hs-mode" class="modes"></select></div>
-      <div><label for="hs-max">Budget max (FCFA)</label><input id="hs-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
-      <button class="btn" type="submit">Rechercher</button>
+      <div class="mtabs" data-p="hs" role="group" aria-label="Je veux"><button type="button" data-m="nuit" aria-pressed="true">Séjourner</button><button type="button" data-m="mois" aria-pressed="false">Louer au mois</button><button type="button" data-m="vente" aria-pressed="false">Acheter</button></div>
+      <div class="sfields">
+        <div><label for="hs-city">Ville</label><select id="hs-city" class="cities"></select></div>
+        <div class="m-nuit"><label for="hs-d1">Arrivée</label><button type="button" class="dfield" id="hs-d1" data-cal="hs">Ajouter une date</button></div>
+        <div class="m-nuit"><label for="hs-d2">Départ</label><button type="button" class="dfield" id="hs-d2" data-cal="hs">Ajouter une date</button></div>
+        <div class="m-g"><label for="hs-g">Voyageurs</label><select id="hs-g" class="guests"></select></div>
+        <div class="m-other" hidden><label for="hs-type">Type</label><select id="hs-type" class="types"></select></div>
+        <div class="m-other" hidden><label for="hs-max">Budget max (FCFA)</label><input id="hs-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
+        <button class="btn" type="submit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Rechercher</button>
+      </div>
+      <input type="hidden" id="hs-mode" value="nuit"><input type="hidden" id="hs-in"><input type="hidden" id="hs-out">
     </form>
     <div class="chips"><button class="chip" data-q="Douala|nuit">Séjour à Douala</button><button class="chip" data-q="Yaoundé|mois">Location à Yaoundé</button><button class="chip" data-q="Kribi|nuit">Vacances à Kribi</button><button class="chip" data-q="|vente">Terrains et maisons à vendre</button></div>
   </div></div>
@@ -71,14 +77,19 @@
 <section class="view" id="v-annonces"><div class="wrap band">
   <h1>Annonces</h1>
   <form class="filters" id="flt">
-    <div><label for="f-city">Ville</label><select id="f-city" class="cities"></select></div>
-    <div><label for="f-type">Type</label><select id="f-type" class="types"></select></div>
-    <div><label for="f-mode">Je veux</label><select id="f-mode" class="modes"></select></div>
-    <div><label for="f-max">Budget max (FCFA)</label><input id="f-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
-    <div><label for="f-sort">Trier</label><select id="f-sort"><option value="">Recommandées</option><option value="asc">Prix croissant</option><option value="desc">Prix décroissant</option></select></div>
-    <div class="fbtns"><button class="btn" type="submit">Rechercher</button><button class="btn ghost" type="reset">Effacer</button></div>
+    <div class="mtabs light" data-p="f" role="group" aria-label="Je veux"><button type="button" data-m="" aria-pressed="true">Tout</button><button type="button" data-m="nuit" aria-pressed="false">Séjour</button><button type="button" data-m="mois" aria-pressed="false">Location au mois</button><button type="button" data-m="vente" aria-pressed="false">Achat</button></div>
+    <div class="sfields">
+      <div><label for="f-city">Ville</label><select id="f-city" class="cities"></select></div>
+      <div class="m-nuit"><label for="f-d1">Arrivée</label><button type="button" class="dfield" id="f-d1" data-cal="f">Ajouter une date</button></div>
+      <div class="m-nuit"><label for="f-d2">Départ</label><button type="button" class="dfield" id="f-d2" data-cal="f">Ajouter une date</button></div>
+      <div class="m-g"><label for="f-g">Voyageurs</label><select id="f-g" class="guests"></select></div>
+      <div class="fbtns"><button type="button" class="btn ghost" id="f-more"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>Filtres<span class="fcount" id="f-n" hidden></span></button><button class="btn" type="submit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Rechercher</button></div>
+    </div>
+    <input type="hidden" id="f-mode"><input type="hidden" id="f-type"><input type="hidden" id="f-in"><input type="hidden" id="f-out">
   </form>
-  <p id="count" class="note"></p>
+  <div class="cats" id="f-cats" role="group" aria-label="Type de logement"></div>
+  <div class="resbar"><p id="count"></p><button type="button" class="linkbtn" id="f-clear" hidden>Effacer les filtres</button>
+    <label class="sort" for="f-sort">Trier <select id="f-sort"><option value="">Recommandées</option><option value="asc">Prix croissant</option><option value="desc">Prix décroissant</option></select></label></div>
   <div class="grid" id="list"></div>
   <p class="note" style="margin-top:20px">Photos Soft Time issues de leur site. Prix indicatifs, à confirmer avec le partenaire.</p>
 </div></section>

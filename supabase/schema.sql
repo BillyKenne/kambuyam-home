@@ -78,6 +78,9 @@ create table if not exists public.listings (
   updated_at  timestamptz not null default now()
 );
 create index if not exists listings_search on public.listings (status, city, mode, price);
+-- Capacité (filtres « Voyageurs » et « Chambres »). Vide = non renseigné.
+alter table public.listings add column if not exists max_guests smallint check (max_guests between 1 and 50);
+alter table public.listings add column if not exists bedrooms smallint check (bedrooms between 0 and 50);
 
 -- Toute modification par un non-admin repasse l'annonce « en attente » de validation.
 create or replace function public.guard_listing() returns trigger
@@ -139,6 +142,14 @@ returns table (check_in date, check_out date)
 language sql stable security definer set search_path = public as $$
   select check_in, check_out from public.bookings
   where listing_id = p_listing and kind = 'stay' and status in ('confirmed','completed') and check_out >= current_date;
+$$;
+
+-- Logements déjà pris sur une période (filtre par dates de la recherche). Ne renvoie que des identifiants d'annonces.
+create or replace function public.busy_listings(p_in date, p_out date)
+returns setof uuid
+language sql stable security definer set search_path = public as $$
+  select distinct listing_id from public.bookings
+  where kind = 'stay' and status in ('confirmed','completed') and check_in < p_out and check_out > p_in;
 $$;
 
 

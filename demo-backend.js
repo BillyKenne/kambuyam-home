@@ -3,7 +3,7 @@
 // et garde les données dans le navigateur du visiteur uniquement (localStorage). Rien n'est envoyé.
 window.khDemoClient = function (seedListings) {
   'use strict';
-  const KEY = 'kh-demo-db-v2';
+  const KEY = 'kh-demo-db-v3';
   const now = () => new Date().toISOString();
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36));
   const ADMIN = 'demo-admin', OWNER = 'demo-proprio', CLIENT = 'demo-client';
@@ -125,7 +125,11 @@ window.khDemoClient = function (seedListings) {
     demo: true,
     reset() { db = fresh(); save(); emit('SIGNED_OUT'); },
     from: t => new Query(t),
-    async rpc(fn, args) { return ok(fn === 'taken_dates' ? taken(args.p_listing).map(({check_in, check_out}) => ({check_in, check_out})) : []); },
+    async rpc(fn, args) {
+      if (fn === 'taken_dates') return ok(taken(args.p_listing).map(({check_in, check_out}) => ({check_in, check_out})));
+      if (fn === 'busy_listings') return ok([...new Set(db.bookings.filter(b => b.kind === 'stay' && ['confirmed', 'completed'].includes(b.status) && overlap(b.check_in, b.check_out, args.p_in, args.p_out)).map(b => b.listing_id))]);
+      return ok([]);
+    },
     storage: {from: () => ({
       async upload(path, blob) { const url = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(blob); }); (db.files = db.files || {})[path] = url; return ok({path}); },
       getPublicUrl: path => ({data: {publicUrl: (db.files || {})[path] || ''}})

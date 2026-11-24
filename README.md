@@ -5,7 +5,7 @@ Le site est en HTML/CSS/JavaScript simple, hébergé sur **GitHub Pages** (Netli
 
 ## Ce que fait le site
 
-- **Visiteurs** : recherche par ville (une vingtaine de villes du Cameroun), type, séjour/location/achat et budget, fiche détaillée avec photos.
+- **Visiteurs** : recherche par ville (une vingtaine de villes du Cameroun), dates d'arrivée et de départ (calendrier, seuls les logements libres s'affichent), voyageurs, catégorie, séjour/location/achat, puis filtres avancés (prix, chambres, équipements comme groupe électrogène ou forage, partenaires). Fiche détaillée avec photos.
 - **Clients** : inscription, réservation de séjours (dates, prix calculé par le serveur), demandes de visite, suivi et annulation dans « Mes réservations ».
 - **Propriétaires** : espace pour publier et modifier leurs biens avec photos, accepter ou refuser les demandes, suivre leurs revenus après la commission de 3 %.
 - **Administrateur** : validation des annonces avant publication, mise à la une, suivi de toutes les réservations, des commissions et des utilisateurs.

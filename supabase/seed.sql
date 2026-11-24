@@ -19,3 +19,6 @@ begin
   ('Résidence Soft Time','Chambre meublée, Soft Time','Chambre / studio','Douala','Bonamoussadi (Terminus)','nuit',20000,'Chambre meublée avec kitchenette (micro-ondes, réfrigérateur), télévision et salle d''eau privée.','{Climatisation,"Wifi gratuit","Écran plat",Kitchenette,"Sécurité 24h/24"}',ARRAY['img/chambre-3.jpg','img/chambre-1.jpg','img/chambre-2.jpg','img/chambre-4.jpg','img/chambre-5.jpg','img/chambre-6.jpg'],true)
   ) as v(partner, title, type, city, area, mode, price, description, amenities, photos, featured);
 end $$;
+
+-- Capacité indicative des logements Soft Time (à confirmer avec le partenaire).
+update public.listings set max_guests = coalesce(max_guests, 2), bedrooms = coalesce(bedrooms, 1) where partner = 'Résidence Soft Time';

@@ -62,6 +62,11 @@ const DEMO = [
   {id: 'nkolbisson', title: 'Terrain de 600 m² à Nkolbisson', type: TYPES[4], city: 'Yaoundé', area: 'Nkolbisson', mode: 'vente', price: 12500000, ex: 1, amenities: ['Titre foncier', 'Proche route bitumée'], description: 'Terrain de 600 m² avec titre foncier, proche de la route bitumée.'}
 ];
 
+// Capacité [voyageurs, chambres] (Soft Time : indicatif, à confirmer).
+const CAP = {apt1: [2, 1], apt2: [2, 1], apt3: [2, 1], apt4: [2, 1], apt5: [3, 1], chambre: [2, 0], bastos: [6, 3], ngoa: [1, 0], odza: [8, 4], bonapriso: [6, 3], kribi: [4, 2], bafoussam: [4, 2], limbe: [2, 0]};
+DEMO.forEach(l => { if (CAP[l.id]) [l.max_guests, l.bedrooms] = CAP[l.id]; });
+['bastos', 'kribi', 'odza'].forEach(id => DEMO.find(l => l.id === id).amenities.push('Groupe électrogène'));
+
 sb = REAL ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey) : window.khDemoClient(DEMO);
 
 // ---------- Accès aux données ----------
@@ -79,6 +84,7 @@ const api = {
     return need(await sb.from('listings').select('*').eq('id', id).maybeSingle());
   },
   async taken(id) { return need(await sb.rpc('taken_dates', {p_listing: id})) || []; },
+  async busy(din, dout) { return need(await sb.rpc('busy_listings', {p_in: din, p_out: dout})) || []; },
   async book(b) {
     const row = {listing_id: b.listing_id, check_in: b.check_in, check_out: b.check_out || null, guests: b.guests || 1,
       contact_phone: b.contact_phone || '', message: b.message || '', payment_method: b.payment_method || null, payment_status: b.payment_method ? 'simulated' : 'unpaid'};
@@ -122,35 +128,168 @@ const art = l => { const c = {'Terrain': '#9bd36b', 'Maison': '#f0a35e'}[l.type]
   return `<svg viewBox="0 0 400 300" role="img" aria-label="Photo à venir"><rect width="400" height="300" fill="${c}"/><rect y="210" width="400" height="90" fill="#24b562" opacity=".55"/><circle cx="320" cy="70" r="34" fill="#fff" opacity=".7"/>${l.type === 'Terrain' ? '<path d="M60 230 L340 230 L300 190 L100 190Z" fill="#fff" opacity=".5"/><path d="M110 190 v-40 M290 190 v-40" stroke="#0f3c44" stroke-width="5"/><rect x="110" y="140" width="180" height="10" fill="#0f3c44"/>' : '<path d="M120 140 L200 80 L280 140Z" fill="#c8483c"/><rect x="135" y="140" width="130" height="80" fill="#fff"/><rect x="185" y="175" width="30" height="45" fill="#137c8b"/><rect x="150" y="155" width="24" height="20" fill="#7fd0dc"/><rect x="226" y="155" width="24" height="20" fill="#7fd0dc"/>'}<text x="200" y="275" text-anchor="middle" font-family="Nunito Sans,sans-serif" font-size="18" font-weight="700" fill="#0f3c44">Photo à venir</text></svg>`; };
 const photos = l => (l.photos || []).map(safeUrl).filter(Boolean);
 const pic = l => { const p = photos(l)[0]; return p ? `<img src="${esc(p)}" alt="" loading="lazy">` : art(l); };
-const card = l => `<a class="card" href="#annonce-${esc(l.id)}"><div class="ph">${pic(l)}<span class="tag">${esc(l.city)}</span>${l.ex ? '<span class="tag p" style="background:#6b7f83">exemple</span>' : l.partner ? '<span class="tag p">Partenaire</span>' : ''}</div><div class="tx"><h3>${esc(l.title)}</h3><span class="loc">${esc(l.type)} · ${esc(l.area)}</span><span class="price">${fcfa(l.price)} <small>${UNIT[l.mode] || ''}</small></span></div></a>`;
+const plural = (n, w) => n + ' ' + w + (n > 1 ? 's' : '');
+const capa = l => [l.max_guests && plural(l.max_guests, 'voyageur'), l.bedrooms != null && l.type !== 'Terrain' && (l.bedrooms ? plural(l.bedrooms, 'chambre') : 'Studio')].filter(Boolean).join(' · ');
+const card = (l, n) => `<a class="card" href="#annonce-${esc(l.id)}"><div class="ph">${pic(l)}<span class="tag">${esc(l.city)}</span>${l.ex ? '<span class="tag p" style="background:#6b7f83">exemple</span>' : l.partner ? '<span class="tag p">Partenaire</span>' : ''}</div><div class="tx"><h3>${esc(l.title)}</h3><span class="loc">${esc(l.type)} · ${esc(l.area)}</span>${capa(l) ? `<span class="meta">${esc(capa(l))}</span>` : ''}<span class="price">${fcfa(l.price)} <small>${UNIT[l.mode] || ''}</small></span>${n > 0 && l.mode === 'nuit' ? `<span class="tot">${fcfa(l.price * n)} au total pour ${plural(n, 'nuit')}</span>` : ''}</div></a>`;
 const loading = '<div class="empty"><div class="spin"></div>Chargement…</div>';
 if (!REAL) $('#proto').insertAdjacentHTML('beforeend', ' <a href="#connexion">Essayer les espaces client, propriétaire et admin</a>');
 const fail = e => `<div class="empty"><h3>Oups</h3><p>${esc(friendly(e))}</p></div>`;
 
+// Équipements reconnus par les filtres (les propriétaires les cochent dans leur formulaire).
+const AMEN = [['wifi', 'Wifi', /wi-?fi/i], ['clim', 'Climatisation', /climatis/i], ['groupe', 'Groupe électrogène', /groupe|électrogène/i],
+  ['eau', 'Forage / eau courante', /forage|eau(?! chaude)/i], ['parking', 'Parking', /parking|garage/i], ['cuisine', 'Cuisine équipée', /cuisine|kitchenette/i],
+  ['securite', 'Sécurité / gardien', /sécurité|gardien|vigile/i], ['tv', 'Télévision', /écran|télé|\btv\b/i], ['chaude', 'Eau chaude', /eau chaude|chauffe-eau/i]];
+const amenRe = Object.fromEntries(AMEN.map(([k, , r]) => [k, r]));
+const ICO = {
+  '': '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  'Appartement meublé': '<path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M3 13a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v5H3z"/><path d="M6 18v2M18 18v2"/>',
+  'Chambre / studio': '<path d="M3 19V6M3 15h18v4M21 15v-2.5a3 3 0 0 0-3-3h-7V15"/><circle cx="7" cy="12" r="1.8"/>',
+  'Appartement': '<rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 8h2M13 8h2M9 12h2M13 12h2M10.5 20.5v-4h3v4"/>',
+  'Maison': '<path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/>',
+  'Terrain': '<path d="M3 20h18"/><path d="M4 20l5-9 4 6 3-4 4 7"/><path d="M15 8V3.5l3.5 1.5L15 6.5"/>'};
+const CATS = [['', 'Tout'], ['Appartement meublé', 'Meublés'], ['Chambre / studio', 'Chambres et studios'], ['Appartement', 'Appartements'], ['Maison', 'Maisons'], ['Terrain', 'Terrains']];
+
 $$('.cities').forEach(s => s.innerHTML = '<option value="">Toutes</option>' + CITIES.map(c => `<option>${c}</option>`).join(''));
 $$('.types').forEach(s => s.innerHTML = '<option value="">Tous</option>' + TYPES.map(t => `<option>${t}</option>`).join(''));
-$$('.modes').forEach(s => s.innerHTML = '<option value="">Tout</option>' + Object.entries(MODES).map(([k, v]) => `<option value="${k}">${v}</option>`).join(''));
+$$('.guests').forEach(s => s.innerHTML = '<option value="">Peu importe</option>' + [1, 2, 3, 4, 5, 6, 8, 10].map(n => `<option value="${n}">${n === 10 ? '10 et plus' : plural(n, 'voyageur')}</option>`).join(''));
+$('#f-cats').innerHTML = CATS.map(([t, n]) => `<button type="button" data-t="${esc(t)}" aria-pressed="${!t}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICO[t]}</svg>${n}</button>`).join('');
+
+// ---------- Calendrier (dates d'arrivée et de départ) ----------
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const fds = s => s ? new Date(s + 'T12:00').toLocaleDateString('fr-FR', {weekday: 'short', day: 'numeric', month: 'short'}) : '';
+const nightsOf = (a, b) => a && b ? Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 864e5) : 0;
+const calTaken = {};   // dates déjà réservées, par calendrier (fiche annonce)
+let calEl = null;
+function showDates(p) {
+  const a = $(`#${p}-in`).value, b = $(`#${p}-out`).value;
+  [[`#${p}-d1`, a], [`#${p}-d2`, b]].forEach(([s, v]) => { const el = $(s); if (el) { el.textContent = v ? fds(v) : 'Ajouter une date'; el.classList.toggle('set', !!v); } });
+}
+function closeCal() { if (calEl) { calEl.remove(); calEl = null; } }
+function openCal(btn, p) {
+  if (calEl && calEl.dataset.p === p) return closeCal();
+  closeCal();
+  const inp = $(`#${p}-in`), outp = $(`#${p}-out`), tk = calTaken[p] || [], today = iso(new Date());
+  let a = inp.value, b = outp.value, view = new Date((a || today) + 'T12:00'); view.setDate(1);
+  const isTk = s => tk.some(t => s >= t.check_in && s < t.check_out);
+  const blocked = (s, e) => tk.some(t => s < t.check_out && e > t.check_in);
+  const el = calEl = document.createElement('div');
+  el.className = 'cal'; el.dataset.p = p; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Choisir les dates du séjour');
+  const month = m => {
+    const y = m.getFullYear(), mo = m.getMonth(), first = (new Date(y, mo, 1).getDay() + 6) % 7, n = new Date(y, mo + 1, 0).getDate(), endMode = a && !b;
+    let h = `<div class="cal-m"><b>${MOIS[mo]} ${y}</b><div class="cal-g">${['lu', 'ma', 'me', 'je', 've', 'sa', 'di'].map(x => `<i>${x}</i>`).join('')}${'<span></span>'.repeat(first)}`;
+    for (let d = 1; d <= n; d++) {
+      const s = `${y}-${pad(mo + 1)}-${pad(d)}`;
+      const off = s < today || (endMode && s > a ? blocked(a, s) : isTk(s));
+      const cls = [s === a && 'a', s === b && 'b', a && b && s > a && s < b && 'in', s === today && 'td', isTk(s) && 'tk'].filter(Boolean).join(' ');
+      h += `<button type="button" data-d="${s}" class="${cls}" ${off ? 'disabled' : ''} aria-label="${fd(s)}">${d}</button>`;
+    }
+    return h + '</div></div>';
+  };
+  const apply = () => { inp.value = a; outp.value = b; showDates(p); [inp, outp].forEach(i => i.dispatchEvent(new Event('input', {bubbles: true}))); };
+  const draw = () => {
+    const nx = new Date(view); nx.setMonth(nx.getMonth() + 1);
+    const cur = new Date(today + 'T12:00'); cur.setDate(1);
+    const n = nightsOf(a, b);
+    el.innerHTML = `<div class="cal-h"><button type="button" class="cal-nav" data-nav="-1" aria-label="Mois précédent" ${view <= cur ? 'disabled' : ''}>‹</button><span>${a && b ? `<b>${plural(n, 'nuit')}</b> · ${fds(a)} → ${fds(b)}` : a ? 'Choisissez la date de <b>départ</b>' : 'Choisissez la date d\'<b>arrivée</b>'}</span><button type="button" class="cal-nav" data-nav="1" aria-label="Mois suivant">›</button></div>
+      <div class="cal-ms">${month(view)}${month(nx)}</div>
+      ${tk.length ? '<p class="note cal-leg"><i class="tkd"></i> Dates déjà réservées</p>' : ''}
+      <div class="cal-f"><button type="button" class="linkbtn" data-clear>Effacer les dates</button><button type="button" class="btn" data-ok>${a && b ? 'Valider' : 'Fermer'}</button></div>`;
+  };
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    const t = e.target.closest('button'); if (!t || t.disabled) return;
+    if (t.dataset.nav) { view.setMonth(view.getMonth() + +t.dataset.nav); return draw(); }
+    if (t.hasAttribute('data-clear')) { a = b = ''; apply(); return draw(); }
+    if (t.hasAttribute('data-ok')) return closeCal();
+    const s = t.dataset.d; if (!s) return;
+    if (!a || b || s <= a) { a = s; b = ''; } else b = s;
+    apply(); draw();
+  });
+  draw(); document.body.appendChild(el);
+  if (innerWidth > 700) { const r = btn.getBoundingClientRect(), w = el.offsetWidth;
+    el.style.top = (r.bottom + scrollY + 8) + 'px'; el.style.left = Math.max(8, Math.min(r.left + scrollX, innerWidth - w - 16)) + 'px'; }
+  el.querySelector('button:not([disabled])[data-d]')?.focus({preventScroll: true});
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-cal]'); if (b) { e.stopPropagation(); openCal(b, b.dataset.cal); } else if (calEl && !calEl.contains(e.target)) closeCal(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeCal(); });
+
+// ---------- Recherche et filtres ----------
+const X = {min: 0, max: 0, beds: 0, amen: [], partner: false};   // filtres avancés (fenêtre « Filtres »)
+const xCount = x => (x.min || x.max ? 1 : 0) + (x.beds ? 1 : 0) + x.amen.length + (x.partner ? 1 : 0);
+function setMode(p, m) {
+  $(`#${p}-mode`).value = m;
+  const form = p === 'hs' ? $('#hs') : $('#flt');
+  form.querySelectorAll('.mtabs [data-m]').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === m));
+  form.querySelectorAll('.m-nuit').forEach(d => d.hidden = !(m === '' || m === 'nuit'));
+  form.querySelectorAll('.m-g').forEach(d => d.hidden = m === 'vente');
+  form.querySelectorAll('.m-other').forEach(d => d.hidden = m === 'nuit');
+  if (m && m !== 'nuit') { $(`#${p}-in`).value = $(`#${p}-out`).value = ''; showDates(p); }
+}
+$$('.mtabs').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (!b) return; setMode(g.dataset.p, b.dataset.m); if (g.dataset.p === 'f') renderList(); }));
+$('#f-cats').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; $('#f-type').value = b.dataset.t; renderList(); });
 
 async function renderFeat() {
-  try { const l = await api.listings(); const f = l.filter(x => x.featured); $('#feat').innerHTML = (f.length ? f : l).slice(0, 8).map(card).join('') || '<div class="empty">Les premières annonces arrivent bientôt.</div>'; }
+  try { const l = await api.listings(); const f = l.filter(x => x.featured); $('#feat').innerHTML = (f.length ? f : l).slice(0, 8).map(l => card(l)).join('') || '<div class="empty">Les premières annonces arrivent bientôt.</div>'; }
   catch (e) { $('#feat').innerHTML = fail(e); }
 }
-let partnerOnly = false;
+let lastQ = null;   // dernière recherche (sert au compteur de la fenêtre « Filtres »)
+const matchL = (l, q, x) => (!q.c || l.city === q.c) && (!q.t || l.type === q.t) && (!q.m || l.mode === q.m)
+  && (!q.n || (l.mode === 'nuit' && !q.busy.has(l.id))) && (!q.g || (l.max_guests || 0) >= q.g)
+  && (!x.min || l.price >= x.min) && (!x.max || l.price <= x.max) && (!x.beds || (l.bedrooms || 0) >= x.beds)
+  && x.amen.every(k => (l.amenities || []).some(a => amenRe[k].test(a))) && (!x.partner || !!l.partner);
 async function renderList() {
-  const c = $('#f-city').value, t = $('#f-type').value, m = $('#f-mode').value, mx = +$('#f-max').value || 0, so = $('#f-sort').value;
-  let all; try { all = await api.listings(); } catch (e) { $('#list').innerHTML = fail(e); return; }
-  let r = all.filter(l => (!c || l.city === c) && (!t || l.type === t) && (!m || l.mode === m) && (!mx || l.price <= mx) && (!partnerOnly || l.partner === SOFT));
-  if (so) r = [...r].sort((a, b) => so === 'asc' ? a.price - b.price : b.price - a.price);
-  $('#count').textContent = r.length + (r.length > 1 ? ' annonces' : ' annonce') + (partnerOnly ? ' de Résidence Soft Time' : '');
-  $('#list').innerHTML = r.length ? r.map(card).join('') : '<div class="empty"><h3>Aucune annonce ne correspond</h3><p>Essayez une autre ville ou un budget plus large.</p></div>';
+  const din = $('#f-in').value, dout = $('#f-out').value, n = Math.max(0, nightsOf(din, dout));
+  const q = {c: $('#f-city').value, t: $('#f-type').value, m: $('#f-mode').value, n, g: +$('#f-g').value || 0, busy: new Set()};
+  $$('#f-cats [data-t]').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === q.t));
+  const k = xCount(X); $('#f-n').hidden = !k; $('#f-n').textContent = k;
+  $('#f-clear').hidden = !(q.c || q.t || q.m || din || q.g || k);
+  let all; try { all = await api.listings(); if (n > 0) q.busy = new Set(await api.busy(din, dout)); } catch (e) { $('#list').innerHTML = fail(e); return; }
+  lastQ = {q, all};
+  let r = all.filter(l => matchL(l, q, X));
+  const so = $('#f-sort').value; if (so) r = [...r].sort((a, b) => so === 'asc' ? a.price - b.price : b.price - a.price);
+  $('#count').innerHTML = `<b>${plural(r.length, 'logement')}</b>` + (q.c ? ' à ' + esc(q.c) : '') + (n > 0 ? ` disponible${r.length > 1 ? 's' : ''} du ${esc(fds(din))} au ${esc(fds(dout))}` : '') + (X.partner ? ' chez nos partenaires' : '');
+  $('#list').innerHTML = r.length ? r.map(l => card(l, n)).join('') : `<div class="empty"><h3>Aucun logement ne correspond</h3><p>${n > 0 ? 'Essayez d\'autres dates, ' : 'Essayez '}une autre ville ou retirez quelques filtres.</p><button type="button" class="btn ghost" data-reset>Effacer les filtres</button></div>`;
 }
-$$('.filters select,.filters input').forEach(e => e.addEventListener('input', () => { partnerOnly = false; renderList(); }));
-$('#flt').addEventListener('submit', e => { e.preventDefault(); partnerOnly = false; renderList(); $('#count').scrollIntoView({behavior: 'smooth', block: 'start'}); });
-$('#flt').addEventListener('reset', () => setTimeout(() => { partnerOnly = false; renderList(); }, 0));
-function goSearch(c, t, m, mx, partner) { $('#f-city').value = c; $('#f-type').value = t; $('#f-mode').value = m; $('#f-max').value = mx; partnerOnly = !!partner; if (location.hash === '#annonces') renderList(); else location.hash = 'annonces'; }
-$('#hs').addEventListener('submit', e => { e.preventDefault(); goSearch($('#hs-city').value, $('#hs-type').value, $('#hs-mode').value, $('#hs-max').value); });
-$$('.chip').forEach(b => b.addEventListener('click', () => { const [c, m] = b.dataset.q.split('|'); goSearch(c, '', m, ''); }));
-$('#partner-btn').addEventListener('click', () => goSearch('', '', '', '', true));
+function resetFilters() {
+  ['#f-city', '#f-type', '#f-in', '#f-out', '#f-g'].forEach(s => $(s).value = ''); Object.assign(X, {min: 0, max: 0, beds: 0, amen: [], partner: false});
+  setMode('f', ''); showDates('f'); renderList();
+}
+$('#f-clear').onclick = resetFilters;
+$('#list').addEventListener('click', e => { if (e.target.closest('[data-reset]')) resetFilters(); });
+['#f-city', '#f-g', '#f-sort', '#f-in', '#f-out'].forEach(s => $(s).addEventListener('input', renderList));
+$('#flt').addEventListener('submit', e => { e.preventDefault(); renderList(); $('#count').scrollIntoView({behavior: 'smooth', block: 'center'}); });
+$('#f-more').onclick = openFilters;
+function openFilters() {
+  const d = {...X, amen: [...X.amen]};
+  const cnt = () => lastQ ? lastQ.all.filter(l => matchL(l, lastQ.q, d)).length : 0;
+  body.innerHTML = shell(-1, 'Filtres', `<div class="fsec"><h3>Prix</h3><div class="row2"><div><label for="x-min">Minimum (FCFA)</label><input id="x-min" type="number" min="0" step="5000" inputmode="numeric" placeholder="0" value="${d.min || ''}"></div><div><label for="x-max">Maximum (FCFA)</label><input id="x-max" type="number" min="0" step="5000" inputmode="numeric" placeholder="Sans limite" value="${d.max || ''}"></div></div><p class="note">Par nuit pour un séjour, par mois pour une location, prix total pour un achat.</p></div>
+    <div class="fsec"><h3>Chambres</h3><div class="seg" id="x-beds">${[0, 1, 2, 3, 4].map(n => `<button type="button" data-b="${n}" aria-pressed="${d.beds === n}">${n ? n + (n === 4 ? ' et +' : '') : 'Peu importe'}</button>`).join('')}</div></div>
+    <div class="fsec"><h3>Équipements</h3><div class="amchk">${AMEN.map(([k, n]) => `<label><input type="checkbox" value="${k}" ${d.amen.includes(k) ? 'checked' : ''}>${n}</label>`).join('')}</div></div>
+    <div class="fsec"><label class="amchk1"><input type="checkbox" id="x-part" ${d.partner ? 'checked' : ''}>Uniquement les partenaires vérifiés par Kambuyam</label></div>
+    <div class="ffoot"><button type="button" class="linkbtn" id="x-clear">Tout effacer</button><button type="button" class="btn" id="x-ok"></button></div>`);
+  const upd = () => { const n = cnt(); $('#x-ok').textContent = n ? `Afficher ${plural(n, 'logement')}` : 'Aucun logement'; };
+  body.querySelector('#x-min').oninput = e => { d.min = +e.target.value || 0; upd(); };
+  body.querySelector('#x-max').oninput = e => { d.max = +e.target.value || 0; upd(); };
+  body.querySelector('#x-beds').onclick = e => { const b = e.target.closest('[data-b]'); if (!b) return; d.beds = +b.dataset.b; $$('#x-beds [data-b]').forEach(x => x.setAttribute('aria-pressed', x === b)); upd(); };
+  $$('.amchk input').forEach(c => c.onchange = () => { d.amen = $$('.amchk input:checked').map(x => x.value); upd(); });
+  $('#x-part').onchange = e => { d.partner = e.target.checked; upd(); };
+  $('#x-clear').onclick = () => { Object.assign(d, {min: 0, max: 0, beds: 0, amen: [], partner: false}); $('#x-min').value = $('#x-max').value = ''; $$('.amchk input').forEach(c => c.checked = false); $('#x-part').checked = false; $$('#x-beds [data-b]').forEach(x => x.setAttribute('aria-pressed', x.dataset.b === '0')); upd(); };
+  $('#x-ok').onclick = () => { Object.assign(X, d); dlg.close(); renderList(); };
+  upd(); dlg.showModal();
+}
+function goSearch(o) {
+  setMode('f', o.mode || ''); $('#f-city').value = o.city || ''; $('#f-type').value = o.type || ''; $('#f-g').value = o.g || '';
+  $('#f-in').value = o.in || ''; $('#f-out').value = o.out || ''; showDates('f');
+  Object.assign(X, {min: 0, max: +o.max || 0, beds: 0, amen: [], partner: !!o.partner});
+  if (location.hash === '#annonces') renderList(); else location.hash = 'annonces';
+}
+$('#hs').addEventListener('submit', e => {
+  e.preventDefault(); const m = $('#hs-mode').value, nuit = m === 'nuit';
+  goSearch({mode: m, city: $('#hs-city').value, in: nuit ? $('#hs-in').value : '', out: nuit ? $('#hs-out').value : '', g: m !== 'vente' ? $('#hs-g').value : '', type: nuit ? '' : $('#hs-type').value, max: nuit ? '' : $('#hs-max').value});
+});
+$$('.chip').forEach(b => b.addEventListener('click', () => { const [city, mode] = b.dataset.q.split('|'); goSearch({city, mode}); }));
+$('#partner-btn').addEventListener('click', () => goSearch({partner: true}));
+setMode('hs', 'nuit'); setMode('f', '');
 
 // ---------- Fiche annonce ----------
 let cur = null, taken = [];
@@ -160,11 +299,18 @@ async function renderDetail(id) {
   let l; try { l = await api.listing(id); taken = l && l.mode === 'nuit' ? await api.taken(l.id) : []; } catch (e) { box.innerHTML = fail(e); return; }
   if (!l) { box.innerHTML = '<div class="empty"><h3>Annonce introuvable</h3><a href="#annonces">Retour aux annonces</a></div>'; return; }
   cur = l; const ph = photos(l), today = new Date(), mine = me && me.id === l.owner_id;
+  // Reprend les dates et voyageurs de la recherche quand elles sont libres pour ce logement.
+  let sIn = $('#f-in').value, sOut = $('#f-out').value;
+  if (!(sIn >= iso(today) && nightsOf(sIn, sOut) > 0 && !overlaps(sIn, sOut))) { sIn = iso(addD(today, 1)); sOut = iso(addD(today, 3)); if (overlaps(sIn, sOut)) sIn = sOut = ''; }
+  calTaken.d = taken;
+  const maxG = l.max_guests || 6, sG = Math.min(+$('#f-g').value || 1, maxG);
   const side = l.status && l.status !== 'published' ? `<p>${badge(l.status)}</p><p class="note">Cette annonce n'est pas visible du public tant qu'elle n'est pas validée.</p>`
    : mine ? `<p>C'est votre annonce.</p><a class="btn" href="#modifier-${esc(l.id)}">Modifier</a>`
    : l.mode === 'nuit' ? `<h3><span class="price">${fcfa(l.price)}</span> <small class="note">/ nuit</small></h3>
-    <div class="row2"><div><label for="d-in">Arrivée</label><input type="date" id="d-in" value="${iso(addD(today, 1))}" min="${iso(today)}"></div><div><label for="d-out">Départ</label><input type="date" id="d-out" value="${iso(addD(today, 3))}" min="${iso(addD(today, 1))}"></div></div>
-    <label for="d-g">Voyageurs</label><select id="d-g">${[1, 2, 3, 4, 5, 6].map(n => `<option>${n}</option>`).join('')}</select>
+    <div class="row2 dpair"><div><label for="d-d1">Arrivée</label><button type="button" class="dfield" id="d-d1" data-cal="d"></button></div><div><label for="d-d2">Départ</label><button type="button" class="dfield" id="d-d2" data-cal="d"></button></div></div>
+    <input type="hidden" id="d-in" value="${sIn}"><input type="hidden" id="d-out" value="${sOut}">
+    <label for="d-g">Voyageurs</label><select id="d-g">${Array.from({length: maxG}, (_, i) => i + 1).map(n => `<option ${n === sG ? 'selected' : ''}>${n}</option>`).join('')}</select>
+    ${l.max_guests ? `<p class="note">Jusqu'à ${plural(l.max_guests, 'voyageur')}.</p>` : ''}
     <table class="sum" id="d-sum"></table><button class="btn" style="width:100%" id="d-book">Réserver</button>
     ${taken.length ? `<p class="note">Déjà réservé : ${taken.map(t => `${fd(t.check_in)} → ${fd(t.check_out)}`).map(esc).join(' ; ')}</p>` : ''}
     <p class="note">Le propriétaire confirme votre demande. Commission Kambuyam de 3 % prélevée sur sa part, sans frais pour vous.</p>`
@@ -172,7 +318,7 @@ async function renderDetail(id) {
     <p>${l.mode === 'vente' ? 'Bien à vendre : planifiez une visite avec le vendeur.' : 'Location longue durée : planifiez une visite avant de signer le bail.'}</p>
     <label for="d-vis">Date de visite souhaitée</label><input type="date" id="d-vis" value="${iso(addD(today, 2))}" min="${iso(today)}" style="margin-bottom:12px">
     <button class="btn" style="width:100%" id="d-visit">Demander une visite</button><p class="note">Gratuit. Le propriétaire vous rappelle rapidement.</p>`;
-  box.innerHTML = `<p><a href="#annonces">← Toutes les annonces</a></p><h1>${esc(l.title)}</h1><p class="loc">${esc(l.type)} · ${esc(l.area)}, ${esc(l.city)}${l.partner ? ' · proposé par <b>' + esc(l.partner) + '</b>' : ''}${l.ex ? ' · <b>annonce d\'exemple</b>' : ''}</p>
+  box.innerHTML = `<p><a href="#annonces">← Toutes les annonces</a></p><h1>${esc(l.title)}</h1><p class="loc">${esc(l.type)} · ${esc(l.area)}, ${esc(l.city)}${l.partner ? ' · proposé par <b>' + esc(l.partner) + '</b>' : ''}${l.ex ? ' · <b>annonce d\'exemple</b>' : ''}${capa(l) ? ' · ' + esc(capa(l)) : ''}</p>
   <div class="detail"><div>
     ${ph.length ? `<div class="gal" id="gal" tabindex="0">${ph.map((p, i) => `<img src="${esc(p)}" alt="Photo ${i + 1}" ${i ? 'loading="lazy"' : ''}>`).join('')}</div>
     <div class="galnav"><button id="gp" aria-label="Photo précédente">‹</button><button id="gn" aria-label="Photo suivante">›</button><span class="note" id="gc">1 / ${ph.length}</span><div class="thumbs">${ph.map((p, i) => `<img src="${esc(p)}" alt="" data-i="${i}" loading="lazy">`).join('')}</div></div>` : `<div class="card" style="margin-bottom:18px"><div class="ph">${art(l)}</div></div>`}
@@ -185,8 +331,8 @@ async function renderDetail(id) {
     g.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') go(idx() - 1); if (e.key === 'ArrowRight') go(idx() + 1); });
     g.addEventListener('scroll', () => $('#gc').textContent = (idx() + 1) + ' / ' + ph.length);
     $$('.thumbs img').forEach(t => t.onclick = () => go(+t.dataset.i)); }
-  if ($('#d-book')) { const upd = () => { const n = nights(), bad = n > 0 && overlaps($('#d-in').value, $('#d-out').value);
-      $('#d-sum').innerHTML = n <= 0 ? '<tr><td class="err">La date de départ doit être après l\'arrivée.</td></tr>' : bad ? '<tr><td class="err">Ces dates chevauchent une réservation existante.</td></tr>'
+  if ($('#d-book')) { showDates('d'); const upd = () => { const n = nights() || 0, bad = n > 0 && overlaps($('#d-in').value, $('#d-out').value);
+      $('#d-sum').innerHTML = n <= 0 ? '<tr><td class="err">' + ($('#d-in').value && $('#d-out').value ? 'La date de départ doit être après l\'arrivée.' : 'Choisissez vos dates d\'arrivée et de départ.') + '</td></tr>' : bad ? '<tr><td class="err">Ces dates chevauchent une réservation existante.</td></tr>'
         : `<tr><td>${fcfa(l.price)} × ${n} nuit${n > 1 ? 's' : ''}</td><td>${fcfa(l.price * n)}</td></tr><tr><td>Frais de service</td><td>0 FCFA</td></tr><tr class="t"><td>Total</td><td>${fcfa(l.price * n)}</td></tr>`;
       $('#d-book').disabled = n <= 0 || bad; };
     ['#d-in', '#d-out'].forEach(s => $(s).addEventListener('input', upd)); upd(); $('#d-book').onclick = openPay; }
@@ -371,7 +517,10 @@ async function renderForm(id) {
     <div><label for="l-type">Type de bien</label><select id="l-type">${TYPES.map(t => `<option ${t === l.type ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <div><label for="l-mode">Proposé</label><select id="l-mode">${[['nuit', 'À la nuit (séjour)'], ['mois', 'Au mois (location)'], ['vente', 'À la vente']].map(([k, v]) => `<option value="${k}" ${k === l.mode ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
     <div><label for="l-price">Prix (FCFA)</label><input id="l-price" type="number" min="500" step="500" required inputmode="numeric" value="${esc(l.price || '')}"></div>
-    <div><label for="l-am">Équipements (séparés par des virgules)</label><input id="l-am" maxlength="300" placeholder="Climatisation, Wifi, Parking" value="${esc((l.amenities || []).join(', '))}"></div>
+    <div><label for="l-gmax">Voyageurs maximum</label><input id="l-gmax" type="number" min="1" max="50" inputmode="numeric" placeholder="Ex. 2" value="${esc(l.max_guests || '')}"></div>
+    <div><label for="l-beds">Nombre de chambres</label><input id="l-beds" type="number" min="0" max="50" inputmode="numeric" placeholder="0 pour un studio" value="${esc(l.bedrooms ?? '')}"></div>
+    <div class="full"><label>Équipements</label><div class="amchk" id="l-amck">${AMEN.map(([k, n, r]) => `<label><input type="checkbox" value="${esc(n)}" ${(l.amenities || []).some(a => r.test(a)) ? 'checked' : ''}>${n}</label>`).join('')}</div></div>
+    <div class="full"><label for="l-am">Autres équipements (séparés par des virgules)</label><input id="l-am" maxlength="300" placeholder="Ex. Balcon, Vue mer, Piscine" value="${esc((l.amenities || []).filter(a => !AMEN.some(([, , r]) => r.test(a))).join(', '))}"></div>
     <div class="full"><label for="l-desc">Description</label><textarea id="l-desc" maxlength="2000" placeholder="Pièces, équipements, accès, règles de la maison…">${esc(l.description || '')}</textarea></div>
     <div class="full"><label for="l-ph">Photos (8 maximum, la première sert de couverture)</label><input id="l-ph" type="file" accept="image/*" multiple><div class="prev" id="l-prev"></div></div>
     <div class="full"><p class="err" id="l-e"></p><button class="btn green" id="l-save">${id ? 'Enregistrer' : 'Envoyer pour validation'}</button></div>
@@ -386,7 +535,8 @@ async function renderForm(id) {
     try {
       const up = []; for (let i = 0; i < files.length; i++) { btn.textContent = `Envoi des photos ${i + 1}/${files.length}…`; up.push(await api.upload(files[i], i)); }
       const data = {title: $('#l-title').value.trim(), city: $('#l-city').value, area: $('#l-area').value.trim(), type: $('#l-type').value, mode: $('#l-mode').value,
-        price: Math.round(+$('#l-price').value), description: $('#l-desc').value.trim(), amenities: $('#l-am').value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 20), photos: [...keep, ...up].slice(0, 8)};
+        price: Math.round(+$('#l-price').value), description: $('#l-desc').value.trim(), amenities: [...$$('#l-amck input:checked').map(c => c.value), ...$('#l-am').value.split(',').map(s => s.trim()).filter(Boolean)].slice(0, 20),
+        max_guests: Math.min(50, Math.max(1, Math.round(+$('#l-gmax').value))) || null, bedrooms: $('#l-beds').value === '' ? null : Math.min(50, Math.max(0, Math.round(+$('#l-beds').value))), photos: [...keep, ...up].slice(0, 8)};
       await api.saveListing(data, id);
       toast(me.role === 'admin' ? 'Annonce enregistrée.' : 'Annonce envoyée : elle sera visible après validation.'); location.hash = 'espace';
     } catch (x) { err.textContent = friendly(x); btn.disabled = false; btn.textContent = id ? 'Enregistrer' : 'Envoyer pour validation'; }
@@ -448,7 +598,7 @@ function route() {
   const navKey = {annonce: 'annonces', 'annonce-form': 'espace'}[v] || v;
   $$('#nav a').forEach(a => a.toggleAttribute('aria-current', a.getAttribute('href') === '#' + navKey));
   if (dlg.open) dlg.close();
-  menu(false);
+  menu(false); closeCal();
   window.scrollTo(0, 0);
   ({accueil: renderFeat, annonces: renderList, annonce: () => renderDetail(h.slice(8)), connexion: renderAuth, compte: renderCompte, espace: renderEspace,
     'annonce-form': () => renderForm(h.startsWith('modifier-') ? h.slice(9) : null), admin: renderAdmin, proprietaires: renderOwnerCta}[v] || (() => {}))();

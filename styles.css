@@ -61,8 +61,8 @@ label{display:block;font-weight:700;font-size:14px;margin-bottom:4px}
 .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,30,35,.15),rgba(8,30,35,.78))}
 .hero .wrap{position:relative;width:100%;padding-block:40px 36px}
 .hero p.lead{font-size:18px;max-width:560px;margin:0 0 20px}
-.search{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;background:var(--card);color:var(--ink);padding:14px;border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.3);align-items:end}
-.search .btn{height:46px}
+.search{gap:10px;background:var(--card);color:var(--ink);padding:14px;border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.3);align-items:end}
+
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:99px;padding:6px 14px;font-weight:700;cursor:pointer;min-height:36px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px}
@@ -76,10 +76,6 @@ label{display:block;font-weight:700;font-size:14px;margin-bottom:4px}
 .loc{color:var(--mute);font-size:14px}
 .price{font:800 20px Nunito,sans-serif;color:var(--teal-d);white-space:nowrap;margin-top:auto}.price small{font:600 14px "Nunito Sans";color:var(--mute)}
 .note{font-size:13px;color:var(--mute)}
-.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:20px}
-.filters>div{flex:1 1 160px}
-.filters>.fbtns{flex:0 0 auto;display:flex;gap:8px}.fbtns .btn{height:46px}
-@media(max-width:600px){.filters>.fbtns{flex:1 1 100%}.fbtns .btn{flex:1}}
 .empty{padding:40px;text-align:center;background:var(--soft);border-radius:18px}
 .how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;counter-reset:s}
 .how div{background:var(--soft);border-radius:18px;padding:22px}
@@ -117,7 +113,7 @@ dialog::backdrop{background:rgba(8,30,35,.6)}
 footer{background:#0f3c44;color:#dcefF2;margin-top:40px}footer a{color:#9fe6c0}
 footer .wrap{display:grid;grid-template-columns:2fr 1fr 1fr;gap:24px;padding-block:36px}
 .view{display:none}.view.on{display:block}
-@media(max-width:900px){.detail{grid-template-columns:1fr}.box{position:static}.search{grid-template-columns:1fr 1fr}.search .btn{grid-column:1/-1}.how{grid-template-columns:1fr}footer .wrap{grid-template-columns:1fr}}
+@media(max-width:900px){.detail{grid-template-columns:1fr}.box{position:static}.how{grid-template-columns:1fr}footer .wrap{grid-template-columns:1fr}}
 @media(max-width:600px){.partner{grid-template-columns:1fr}.partner img{max-width:200px}.form{grid-template-columns:1fr}.bars span{width:100px}}
 @media(prefers-reduced-motion:reduce){.card,.spin{transition:none;animation:none}}
 /* Comptes, espaces propriétaire et admin */
@@ -150,3 +146,62 @@ footer .wrap{display:grid;grid-template-columns:2fr 1fr 1fr;gap:24px;padding-blo
 .prev{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.prev img{width:72px;height:54px;object-fit:cover;border-radius:8px}
 .seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.seg button{min-height:40px;padding:0 14px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;cursor:pointer}.seg button[aria-pressed=true]{background:var(--teal);border-color:var(--teal);color:#fff}
 @media(max-width:600px){.item{grid-template-columns:72px minmax(0,1fr)}.item img,.item .ph{width:72px;height:56px}.item .act{grid-column:1/-1;justify-content:flex-start}.roles{grid-template-columns:1fr}}
+
+/* Recherche : onglets, champs, calendrier, catégories, filtres */
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.mtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.mtabs button{min-height:40px;padding:0 16px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:700 15px "Nunito Sans",sans-serif;cursor:pointer}
+.mtabs button[aria-pressed=true]{background:var(--teal);border-color:var(--teal);color:#fff}
+.sfields{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.sfields>div{flex:1 1 150px}
+.sfields>.btn,.sfields>.fbtns{flex:0 0 auto}
+.fbtns{display:flex;gap:8px}
+.sfields .btn{height:46px}
+.dfield{width:100%;min-height:46px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--mute);font:16px "Nunito Sans",sans-serif;text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dfield.set{color:var(--ink);font-weight:700}
+.dfield:hover,.dfield:focus-visible{border-color:var(--teal)}
+.filters{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 6px 24px rgba(16,40,45,.07);margin-bottom:16px}
+.fcount{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--teal);color:#fff;font-size:13px;margin-left:2px}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;scrollbar-width:thin}
+.cats button{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:92px;padding:8px 10px 10px;border:0;border-bottom:3px solid transparent;background:none;color:var(--mute);font:700 13px "Nunito Sans",sans-serif;cursor:pointer;border-radius:10px 10px 0 0}
+.cats svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.cats button:hover{color:var(--ink);background:var(--soft)}
+.cats button[aria-pressed=true]{color:var(--teal-d);border-bottom-color:var(--teal)}
+.resbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:16px}
+.resbar #count{margin:0;color:var(--mute)}.resbar #count b{color:var(--ink)}
+.sort{display:flex;align-items:center;gap:8px;margin:0 0 0 auto;font-weight:700;font-size:14px}.sort select{width:auto;min-height:40px;padding:6px 10px}
+.linkbtn{background:none;border:0;padding:6px 2px;color:var(--teal-d);font:700 15px "Nunito Sans",sans-serif;text-decoration:underline;cursor:pointer}
+.card .meta{font-size:14px;color:var(--ink)}
+.card .tot{font-size:13px;color:var(--mute);margin-top:-2px}
+.fsec{padding:16px 0;border-bottom:1px solid var(--line)}.fsec:first-of-type{padding-top:4px}.fsec h3{margin-bottom:10px}
+.fsec .seg{margin:0}
+.amchk{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:4px 14px}
+.amchk label,.amchk1{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;min-height:40px;margin:0;cursor:pointer}
+.amchk input,.amchk1 input{width:20px;height:20px;min-height:0;flex:none;accent-color:var(--teal)}
+.ffoot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:16px}
+.cal{position:absolute;z-index:60;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 50px rgba(8,30,35,.25);padding:16px 18px;width:min(660px,calc(100vw - 32px))}
+.cal-h{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:center;font-size:15px}
+.cal-nav{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;line-height:1;cursor:pointer}.cal-nav:disabled{opacity:.3;cursor:default}
+.cal-ms{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:8px}
+.cal-m>b{display:block;text-align:center;font:800 16px Nunito,sans-serif;text-transform:capitalize;margin:4px 0 8px}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px}
+.cal-g i{font-style:normal;text-align:center;font-size:12px;color:var(--mute);padding-bottom:4px}
+.cal-g button{aspect-ratio:1;border:0;background:none;color:var(--ink);font:600 15px "Nunito Sans",sans-serif;border-radius:50%;cursor:pointer;position:relative}
+.cal-g button:hover:not(:disabled){outline:1.5px solid var(--ink)}
+.cal-g button:disabled{color:var(--mute);opacity:.45;cursor:default;text-decoration:none}
+.cal-g button.tk{text-decoration:line-through}
+.cal-g button.td{font-weight:800;color:var(--teal-d)}
+.cal-g button.in{background:var(--soft);border-radius:0}
+.cal-g button.a,.cal-g button.b{background:var(--teal);color:#fff;font-weight:800}
+.cal-leg{display:flex;align-items:center;gap:6px;margin:8px 0 0}.cal-leg .tkd{display:inline-block;width:18px;border-top:1.5px solid var(--mute)}
+.cal-f{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.dpair{margin-bottom:10px}
+@media(max-width:700px){
+  .cal{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;border-radius:22px 22px 0 0;max-height:88vh;overflow:auto;padding:16px}
+  .cal-ms{grid-template-columns:1fr;gap:14px}
+  .sfields>div{flex:1 1 calc(50% - 5px)}
+  .sfields>div:first-child{flex-basis:100%}
+  .sfields>.btn,.sfields>.fbtns{flex:1 1 100%}.fbtns .btn{flex:1}
+  .mtabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.mtabs button{flex:none;padding:0 13px}
+  .sort{margin-left:0}
+}
