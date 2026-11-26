@@ -1,0 +1,29 @@
+# Prévisualisation de la version AdonisJS sur Render (offre gratuite).
+# Le site actuel (GitHub Pages, kambuyam.com) n'est pas concerné par ce fichier.
+services:
+  - type: web
+    name: kambuyam-home-adonis
+    runtime: node
+    plan: free
+    rootDir: adonis
+    branch: claude/project-thread-6mm7gx
+    buildCommand: npm ci && node ace build && cd build && npm ci --omit=dev
+    startCommand: cd build && node ace migration:run --force && node bin/server.js
+    healthCheckPath: /api/listings
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: LOG_LEVEL
+        value: info
+      - key: SESSION_DRIVER
+        value: cookie
+      - key: TZ
+        value: UTC
+      - key: DEMO_MODE
+        value: "true"
+      - key: APP_KEY
+        generateValue: true

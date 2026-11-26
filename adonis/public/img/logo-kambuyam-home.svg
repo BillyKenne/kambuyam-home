@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 120">
+  <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800');text{font-family:Nunito,'Varela Round',sans-serif;letter-spacing:-1.5px}</style>
+  <rect x="14" y="16" width="92" height="92" rx="24" fill="#24b562" transform="rotate(-8 60 62)"/>
+  <rect x="10" y="8" width="96" height="96" rx="26" fill="#1d9fb2"/>
+  <path d="M30 56 L58 32 Q60 30.5 62 32 L90 56" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 54 V80 Q38 86 44 86 H76 Q82 86 82 80 V54" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="60" cy="66" r="9" fill="#fff"/><circle cx="72.5" cy="73" r="4.5" fill="#fff"/><circle cx="50" cy="75" r="3.5" fill="#fff"/>
+  <text x="128" y="80" font-size="58"><tspan font-weight="800" fill="#137c8b">kambuyam</tspan><tspan font-weight="600" fill="#24b562" dx="4">home</tspan></text>
+</svg>
