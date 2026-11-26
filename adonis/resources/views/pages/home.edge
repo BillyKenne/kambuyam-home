@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta name="csrf-token" content="{{ csrfToken }}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kambuyam Home</title>
+<meta name="description" content="Appartements meublés, chambres, maisons et terrains partout au Cameroun : Douala, Yaoundé, Kribi, Bafoussam, Limbé et plus. Réservez et payez par Orange Money ou MTN Mobile Money.">
+<link rel="icon" href="/img/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v={{ version }}">
+</head>
+<body data-kh-demo="{{ demoMode ? '1' : '0' }}">
+<div class="proto" id="proto"><b>Version de démonstration</b> · site en construction. Les paiements sont simulés et certaines annonces sont des exemples.</div>
+<header><div class="wrap bar">
+  <a class="brand" href="#accueil"><img src="img/mark.svg" alt=""><span><b>kambuyam</b><i>home</i></span></a>
+  <button class="burger" id="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
+  <nav id="nav" aria-label="Menu principal">
+    <div class="nav-links">
+      <a href="#annonces"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Annonces</a>
+      <a href="#proprietaires" id="nav-pub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/><path d="M12 11.5v6M9 14.5h6"/></svg>Publier un bien</a>
+      <a href="#compte" id="nav-res"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>Mes réservations</a>
+      <a href="#espace" id="nav-owner" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg>Mes biens</a>
+      <a href="#admin" id="nav-admin" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Admin</a>
+      <a href="#contact" class="nav-contact"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.5h15v10h-9l-4.5 3.5v-3.5H4.5z"/></svg>Contact</a>
+    </div>
+    <div class="nav-acc">
+      <a href="#connexion" id="nav-login" class="btn nav-cta">Se connecter</a>
+      <a href="#compte" id="nav-me" class="who" hidden></a>
+    </div>
+  </nav>
+</div></header>
+
+<main>
+<section class="view" id="v-accueil">
+  <div class="hero"><div class="wrap">
+    <h1>Trouvez votre logement partout au Cameroun</h1>
+    <p class="lead">Appartements meublés, chambres, maisons et terrains, vérifiés et réservables en ligne. Payez avec Orange Money ou MTN Mobile Money.</p>
+    <form class="search" id="hs">
+      <div class="mtabs" data-p="hs" role="group" aria-label="Je veux"><button type="button" data-m="nuit" aria-pressed="true">Séjourner</button><button type="button" data-m="mois" aria-pressed="false">Louer au mois</button><button type="button" data-m="vente" aria-pressed="false">Acheter</button></div>
+      <div class="sfields">
+        <div><label for="hs-city">Ville</label><select id="hs-city" class="cities"></select></div>
+        <div class="m-nuit"><label for="hs-d1">Arrivée</label><button type="button" class="dfield" id="hs-d1" data-cal="hs">Ajouter une date</button></div>
+        <div class="m-nuit"><label for="hs-d2">Départ</label><button type="button" class="dfield" id="hs-d2" data-cal="hs">Ajouter une date</button></div>
+        <div class="m-g"><label for="hs-g">Voyageurs</label><select id="hs-g" class="guests"></select></div>
+        <div class="m-other" hidden><label for="hs-type">Type</label><select id="hs-type" class="types"></select></div>
+        <div class="m-other" hidden><label for="hs-max">Budget max (FCFA)</label><input id="hs-max" type="number" min="0" step="5000" placeholder="Sans limite" inputmode="numeric"></div>
+        <button class="btn" type="submit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Rechercher</button>
+      </div>
+      <input type="hidden" id="hs-mode" value="nuit"><input type="hidden" id="hs-in"><input type="hidden" id="hs-out">
+    </form>
+    <div class="chips"><button class="chip" data-q="Douala|nuit">Séjour à Douala</button><button class="chip" data-q="Yaoundé|mois">Location à Yaoundé</button><button class="chip" data-q="Kribi|nuit">Vacances à Kribi</button><button class="chip" data-q="|vente">Terrains et maisons à vendre</button></div>
+  </div></div>
+  <div class="wrap band">
+    <h2>Annonces à la une</h2>
+    <div class="grid" id="feat"></div>
+    <p style="margin-top:18px"><a class="btn ghost" href="#annonces">Voir toutes les annonces</a></p>
+  </div>
+  <div class="wrap band">
+    <h2>Comment ça marche</h2>
+    <div class="how">
+      <div><h3>Cherchez</h3>Filtrez par ville, type de bien et budget. Chaque annonce est vérifiée par notre équipe avant d'être publiée.</div>
+      <div><h3>Réservez</h3>Choisissez vos dates. Le prix total s'affiche avant de payer, sans frais cachés. Le propriétaire confirme rapidement.</div>
+      <div><h3>Payez par mobile</h3>Orange Money ou MTN Mobile Money. Vous recevez une référence de réservation tout de suite.</div>
+    </div>
+  </div>
+  <div class="wrap band">
+    <div class="partner">
+      <img src="img/softtime-facade.jpg" alt="Façade de la Résidence Soft Time à Bonamoussadi">
+      <div><h2>Partenaire : Résidence Soft Time</h2>
+      <p>En plein cœur de Bonamoussadi, au lieu-dit Terminus à Douala : appartements et chambres meublés haut standing, écrans plats, climatisation, wifi gratuit, accueil et sécurité 24h/24.</p>
+      <button class="btn" type="button" id="partner-btn">Voir ses logements</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-annonces"><div class="wrap band">
+  <h1>Annonces</h1>
+  <form class="filters" id="flt">
+    <div class="mtabs light" data-p="f" role="group" aria-label="Je veux"><button type="button" data-m="" aria-pressed="true">Tout</button><button type="button" data-m="nuit" aria-pressed="false">Séjour</button><button type="button" data-m="mois" aria-pressed="false">Location au mois</button><button type="button" data-m="vente" aria-pressed="false">Achat</button></div>
+    <div class="sfields">
+      <div><label for="f-city">Ville</label><select id="f-city" class="cities"></select></div>
+      <div class="m-nuit"><label for="f-d1">Arrivée</label><button type="button" class="dfield" id="f-d1" data-cal="f">Ajouter une date</button></div>
+      <div class="m-nuit"><label for="f-d2">Départ</label><button type="button" class="dfield" id="f-d2" data-cal="f">Ajouter une date</button></div>
+      <div class="m-g"><label for="f-g">Voyageurs</label><select id="f-g" class="guests"></select></div>
+      <div class="fbtns"><button type="button" class="btn ghost" id="f-more"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>Filtres<span class="fcount" id="f-n" hidden></span></button><button class="btn" type="submit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Rechercher</button></div>
+    </div>
+    <input type="hidden" id="f-mode"><input type="hidden" id="f-type"><input type="hidden" id="f-in"><input type="hidden" id="f-out">
+  </form>
+  <div class="cats" id="f-cats" role="group" aria-label="Type de logement"></div>
+  <div class="resbar"><p id="count"></p><button type="button" class="linkbtn" id="f-clear" hidden>Effacer les filtres</button>
+    <label class="sort" for="f-sort">Trier <select id="f-sort"><option value="">Recommandées</option><option value="asc">Prix croissant</option><option value="desc">Prix décroissant</option></select></label></div>
+  <div class="grid" id="list"></div>
+  <p class="note" style="margin-top:20px">Photos Soft Time issues de leur site. Prix indicatifs, à confirmer avec le partenaire.</p>
+</div></section>
+
+<section class="view" id="v-annonce"><div class="wrap band" id="detail"></div></section>
+
+<section class="view" id="v-proprietaires"><div class="wrap band">
+  <h1>Publiez votre bien gratuitement</h1>
+  <p style="max-width:680px">Propriétaires, hôtels et résidences : mettez vos logements et terrains en avant dans toutes les villes du Cameroun. Aucune commission d'un mois de loyer comme en agence. Kambuyam prélève seulement <b>3 %</b> sur chaque réservation payée en ligne.</p>
+  <div id="owner-cta"></div>
+  <div class="calc">
+    <h3>Combien ça vous coûte ?</h3>
+    <label for="c-rent">Loyer mensuel (FCFA)</label><input id="c-rent" type="number" min="0" step="5000" value="125000" inputmode="numeric" style="max-width:260px">
+    <div class="bars" id="bars"></div>
+    <p class="note">Base : en agence, le propriétaire verse en général un mois de loyer. Chez Kambuyam, 3 % du montant réservé.</p>
+  </div>
+</div></section>
+
+<section class="view" id="v-connexion"><div class="wrap band" id="auth"></div></section>
+<section class="view" id="v-compte"><div class="wrap band" id="compte"></div></section>
+<section class="view" id="v-espace"><div class="wrap band" id="espace"></div></section>
+<section class="view" id="v-annonce-form"><div class="wrap band" id="lform"></div></section>
+<section class="view" id="v-admin"><div class="wrap band" id="admin"></div></section>
+
+<section class="view" id="v-contact"><div class="wrap band">
+  <h1>Contactez-nous</h1>
+  <p>Une question sur une annonce, un partenariat ou un paiement ? Écrivez-nous, l'équipe répond 7j/7.</p>
+  <form class="form" id="ct">
+    <div><label for="c-name">Nom</label><input id="c-name" required></div>
+    <div><label for="c-tel">Téléphone ou e-mail</label><input id="c-tel" required></div>
+    <div class="full"><label for="c-msg">Message</label><textarea id="c-msg" required></textarea></div>
+    <div class="full"><button class="btn" type="submit">Envoyer</button> <span id="ct-msg" class="note"></span></div>
+  </form>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <div><b style="font:800 20px Nunito">Kambuyam Home</b><p>La plateforme immobilière 100 % africaine. Location, séjour et vente dans tout le Cameroun, paiement par mobile money.</p></div>
+  <div><b>Explorer</b><br><a href="#annonces">Annonces</a><br><a href="#proprietaires">Publier un bien</a><br><a href="#compte">Mes réservations</a></div>
+  <div><b>Kambuyam</b><br>Douala · Yaoundé · Kribi · Bafoussam…<br><a href="#contact">Nous contacter</a></div>
+</div></footer>
+
+<dialog id="dlg"><div class="dlg" id="dlgb"></div></dialog>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="/app.js?v={{ version }}"></script>
+</body>
+</html>
